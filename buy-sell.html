@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Buy and sell puppies through Paws & Tails.">
+    <title>Buy/Sell Puppies - Paws & Tails</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="buy-sell.html">Buy/Sell Puppies</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="privacy.html">Privacy Policy</a></li>
+                <li><a href="faq.html">FAQs</a></li>
+            </ul>
+        </nav>
+        <h1>Buy/Sell Puppies</h1>
+    </header>
+
+    <section class="buy-sell-form">
+        <h2>Post Your Puppy</h2>
+        <form id="sellForm" action="#" method="post" enctype="multipart/form-data">
+            <label for="name">Your Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Your Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="petName">Pet's Name:</label>
+            <input type="text" id="petName" name="petName" required>
+
+            <label for="petAge">Pet's Age (in months):</label>
+            <input type="number" id="petAge" name="petAge" required>
+
+            <label for="country">Country:</label>
+            <input type="text" id="country" name="country" required>
+
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" required>
+
+            <label for="petPhotos">Upload Pet Photos (optional):</label>
+            <input type="file" id="petPhotos" name="petPhotos" accept="image/*" multiple>
+
+            <label for="petVideos">Upload Pet Videos (optional):</label>
+            <input type="file" id="petVideos" name="petVideos" accept="video/*" multiple>
+
+            <label for="message">Additional Information:</label>
+            <textarea id="message" name="message" required></textarea>
+
+            <button type="submit">Post</button>
+        </form>
+    </section>
+
+    <section id="submittedInfo" class="submitted-info">
+        <h2>Submitted Listings</h2>
+        <div id="infoContainer"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2023 Paws & Tails. All rights reserved.</p>
+    </footer>
+	
+	<button id="back-to-top" onclick="topFunction()">Top</button>
+    <script src="js/script.js"></script>
+
+    <script>
+        document.getElementById('sellForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form from submitting the traditional way
+
+            // Capture form data
+            const formData = new FormData(this);
+
+            // Create a new div to display the submitted info
+            const infoContainer = document.getElementById('infoContainer');
+            const newDiv = document.createElement('div');
+            newDiv.className = 'submitted-item';
+
+            // Display text information
+            newDiv.innerHTML = `
+                <h3>${formData.get('petName')} (${formData.get('petAge')} months)</h3>
+                <p><strong>Owner:</strong> ${formData.get('name')}</p>
+                <p><strong>Email:</strong> ${formData.get('email')}</p>
+                <p><strong>Location:</strong> ${formData.get('city')}, ${formData.get('country')}</p>
+                <p><strong>Additional Info:</strong> ${formData.get('message')}</p>
+            `;
+
+            // Display uploaded photos
+            const photosDiv = document.createElement('div');
+            photosDiv.className = 'photos';
+            photosDiv.innerHTML = '<h4>Photos:</h4>';
+            formData.getAll('petPhotos').forEach(file => {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.alt = file.name;
+                img.style.maxWidth = '100px';
+                img.style.height = 'auto';
+                photosDiv.appendChild(img);
+            });
+            newDiv.appendChild(photosDiv);
+
+            // Display uploaded videos
+            const videosDiv = document.createElement('div');
+            videosDiv.className = 'videos';
+            videosDiv.innerHTML = '<h4>Videos:</h4>';
+            formData.getAll('petVideos').forEach(file => {
+                const video = document.createElement('video');
+                video.src = URL.createObjectURL(file);
+                video.controls = true;
+                video.style.maxWidth = '100px';
+                video.style.height = 'auto';
+                videosDiv.appendChild(video);
+            });
+            newDiv.appendChild(videosDiv);
+
+            // Append the new div to the info container
+            infoContainer.appendChild(newDiv);
+
+            // Clear the form
+            this.reset();
+        });
+    </script>
+</body>
+</html>

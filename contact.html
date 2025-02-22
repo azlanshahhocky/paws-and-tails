@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contact Paws & Tails for any inquiries or support.">
+    <title>Contact Us - Paws & Tails</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="buy-sell.html">Buy/Sell Puppies</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="privacy.html">Privacy Policy</a></li>
+                <li><a href="faq.html">FAQs</a></li>
+            </ul>
+        </nav>
+        <h1>Contact Us</h1>
+    </header>
+
+    <section class="contact-form">
+        <h2>Get in Touch</h2>
+        <form action="submit_form.php" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <label for="phone">Phone (Optional):</label>
+            <input type="tel" id="phone" name="phone">
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" required></textarea>
+            <div class="g-recaptcha" data-sitekey="6Ldo6t0qAAAAAPNegeGRgr7H4hDnWudeV8xKzYOg"></div>
+            <button type="submit">Send</button>
+        </form>
+    </section>
+
+    <section class="contact-info">
+        <h2>Contact Information</h2>
+        <div class="info-item">
+            <h3>Address</h3>
+            <p>123 Pet Lover's Lane, Puppyville, PV 12345</p>
+        </div>
+        <div class="info-item">
+            <h3>Email</h3>
+            <p><a href="mailto:info@pawsandtails.com">info@pawsandtails.com</a></p>
+        </div>
+        <div class="info-item">
+            <h3>Phone</h3>
+            <p><a href="tel:+1234567890">(123) 456-7890</a></p>
+        </div>
+        <div class="info-item">
+            <h3>Business Hours</h3>
+            <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
+            <p>Saturday: 10:00 AM - 2:00 PM</p>
+            <p>Sunday: Closed</p>
+        </div>
+    </section>
+
+    <section class="map">
+        <h2>Location</h2>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.7688085380605!2d-73.985708!3d40.748574!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a3f3f3f3f3%3A0x3f3f3f3f3f3f3f3f!2sPaws%20%26%20Tails!5e0!3m2!1sen!2sus!4v1634857200000!5m2!1sen!2sus" width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    </section>
+
+    <section class="social-media">
+        <h2>Follow Us</h2>
+        <ul>
+            <li><a href="https://facebook.com/pawsandtails" target="_blank">Facebook</a></li>
+            <li><a href="https://twitter.com/pawsandtails" target="_blank">Twitter</a></li>
+            <li><a href="https://instagram.com/pawsandtails" target="_blank">Instagram</a></li>
+            <li><a href="https://linkedin.com/company/pawsandtails" target="_blank">LinkedIn</a></li>
+        </ul>
+    </section>
+
+    <footer>
+        <p>&copy; 2023 Paws & Tails. All rights reserved.</p>
+    </footer>
+	<button id="back-to-top" onclick="topFunction()">Top</button>
+    <script src="js/script.js"></script>
+</body>
+</html>

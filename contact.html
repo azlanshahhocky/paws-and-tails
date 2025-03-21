@@ -41,7 +41,12 @@
             <label for="message">Message:</label>
             <textarea id="message" name="message" required></textarea>
             <div class="g-recaptcha" data-sitekey="6Ldo6t0qAAAAAPNegeGRgr7H4hDnWudeV8xKzYOg"></div>
-            <button type="submit">Send</button>
+            <button class="g-recaptcha"
+    data-sitekey="6Ldo6t0qAAAAAPNegeGRgr7H4hDnWudeV8xKzYOg"
+    data-callback='onSubmit'
+    data-action='submit'>
+  Submit
+</button>
         </form>
     </section>
 

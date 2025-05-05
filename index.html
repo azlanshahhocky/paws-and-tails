@@ -1,23 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-B4163485NL"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-B4163485NL');
-</script>
-    <script src="https://kulroakonsu.net/88/tag.min.js" data-zone="142022" async data-cfasync="false"></script>
-    <script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "r452exialp");
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Welcome to Paws & Tails - Your ultimate destination for adorable puppies, pet care tips, and buying/selling puppies.">
@@ -25,11 +8,86 @@
     <meta name="author" content="Paws & Tails">
     <title>Paws & Tails - Home</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Pagination Styles */
+        .pagination {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .pagination button:hover:not(.disabled) {
+            background-color: #45a049;
+        }
+
+        .pagination button.active {
+            background-color: #2d662f;
+        }
+
+        .pagination button.disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* Image Gallery Styles */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .img-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .img-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .img-container p {
+            padding: 10px;
+            margin: 0;
+            text-align: center;
+            background-color: #f8f8f8;
+        }
+
+        /* Back-to-Top Button */
+        #back-to-top {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
     <button id="theme-switch" type="button">Toggle Theme</button>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
 </head>
 <body>
     <header>
@@ -50,8 +108,409 @@
 
     <section class="puppy-gallery">
         <h2>Meet Our Puppies</h2>
-        <div class="gallery">
-            <!-- Puppy images will be dynamically added here -->
+        
+<!-- Page 1 (1-24) -->
+<div class="gallery" id="page1">
+    <!-- Article 1 -->
+    <div class="img-container" onclick="window.location.href='articles/article-1.html'">
+        <img src="images/pupp (1).jpg" alt="Golden Retriever Puppies: Care and Health Tips">
+        <p>Golden Retriever Puppies: Care and Health Tips</p>
+    </div>
+
+    <!-- Article 2 -->
+    <div class="img-container" onclick="window.location.href='articles/article-2.html'">
+        <img src="images/pupp (2).jpg" alt="Labrador Retriever Puppies: A Complete Guide">
+        <p>Labrador Retriever Puppies: A Complete Guide</p>
+    </div>
+
+    <!-- Article 3 -->
+    <div class="img-container" onclick="window.location.href='articles/article-3.html'">
+        <img src="images/pupp (3).jpg" alt="German Shepherd Puppies: Training and Care">
+        <p>German Shepherd Puppies: Training and Care</p>
+    </div>
+
+    <!-- Article 4 -->
+    <div class="img-container" onclick="window.location.href='articles/article-4.html'">
+        <img src="images/pupp (4).jpg" alt="French Bulldog Puppies: What You Need to Know">
+        <p>French Bulldog Puppies: What You Need to Know</p>
+    </div>
+
+    <!-- Article 5 -->
+    <div class="img-container" onclick="window.location.href='articles/article-5.html'">
+        <img src="images/pupp (5).jpg" alt="Poodle Puppies: Grooming and Care Tips">
+        <p>Poodle Puppies: Grooming and Care Tips</p>
+    </div>
+
+    <!-- Article 6 -->
+    <div class="img-container" onclick="window.location.href='articles/article-6.html'">
+        <img src="images/pupp (6).jpg" alt="Bulldog Puppies: Health and Care Guide">
+        <p>Bulldog Puppies: Health and Care Guide</p>
+    </div>
+
+    <!-- Article 7 -->
+    <div class="img-container" onclick="window.location.href='articles/article-7.html'">
+        <img src="images/pupp (7).jpg" alt="Beagle Puppies: Training and Care Tips">
+        <p>Beagle Puppies: Training and Care Tips</p>
+    </div>
+
+    <!-- Article 8 -->
+    <div class="img-container" onclick="window.location.href='articles/article-8.html'">
+        <img src="images/pupp (8).jpg" alt="Rottweiler Puppies: A Complete Guide">
+        <p>Rottweiler Puppies: A Complete Guide</p>
+    </div>
+
+    <!-- Article 9 -->
+    <div class="img-container" onclick="window.location.href='articles/article-9.html'">
+        <img src="images/pupp (9).jpg" alt="Dachshund Puppies: Care and Health Tips">
+        <p>Dachshund Puppies: Care and Health Tips</p>
+    </div>
+
+    <!-- Article 10 -->
+    <div class="img-container" onclick="window.location.href='articles/article-10.html'">
+        <img src="images/pupp (10).jpg" alt="Boxer Puppies: Training and Care">
+        <p>Boxer Puppies: Training and Care</p>
+    </div>
+
+    <!-- Article 11 -->
+    <div class="img-container" onclick="window.location.href='articles/article-11.html'">
+        <img src="images/pupp (11).jpg" alt="Shih Tzu Puppies: Grooming and Care Tips">
+        <p>Shih Tzu Puppies: Grooming and Care Tips</p>
+    </div>
+
+    <!-- Article 12 -->
+    <div class="img-container" onclick="window.location.href='articles/article-12.html'">
+        <img src="images/pupp (12).jpg" alt="Siberian Husky Puppies: Care and Training">
+        <p>Siberian Husky Puppies: Care and Training</p>
+    </div>
+
+    <!-- Article 13 -->
+    <div class="img-container" onclick="window.location.href='articles/article-13.html'">
+        <img src="images/pupp (13).jpg" alt="Chihuahua Puppies: A Complete Guide">
+        <p>Chihuahua Puppies: A Complete Guide</p>
+    </div>
+
+    <!-- Article 14 -->
+    <div class="img-container" onclick="window.location.href='articles/article-14.html'">
+        <img src="images/pupp (14).jpg" alt="Pomeranian Puppies: Grooming and Care">
+        <p>Pomeranian Puppies: Grooming and Care</p>
+    </div>
+
+    <!-- Article 15 -->
+    <div class="img-container" onclick="window.location.href='articles/article-15.html'">
+        <img src="images/pupp (15).jpg" alt="Great Dane Puppies: Health and Care Tips">
+        <p>Great Dane Puppies: Health and Care Tips</p>
+    </div>
+
+    <!-- Article 16 -->
+    <div class="img-container" onclick="window.location.href='articles/article-16.html'">
+        <img src="images/pupp (16).jpg" alt="Cocker Spaniel Puppies: Care and Grooming">
+        <p>Cocker Spaniel Puppies: Care and Grooming</p>
+    </div>
+
+    <!-- Article 17 -->
+    <div class="img-container" onclick="window.location.href='articles/article-17.html'">
+        <img src="images/pupp (17).jpg" alt="Dalmatian Puppies: Training and Care">
+        <p>Dalmatian Puppies: Training and Care</p>
+    </div>
+
+    <!-- Article 18 -->
+    <div class="img-container" onclick="window.location.href='articles/article-18.html'">
+        <img src="images/pupp (18).jpg" alt="Yorkshire Terrier Puppies: Care and Grooming">
+        <p>Yorkshire Terrier Puppies: Care and Grooming</p>
+    </div>
+
+    <!-- Article 19 -->
+    <div class="img-container" onclick="window.location.href='articles/article-19.html'">
+        <img src="images/pupp (19).jpg" alt="Bulldog Puppies: Health and Care Guide">
+        <p>Bulldog Puppies: Health and Care Guide</p>
+    </div>
+
+    <!-- Article 20 -->
+    <div class="img-container" onclick="window.location.href='articles/article-20.html'">
+        <img src="images/pupp (20).jpg" alt="Pug Puppies: Care and Health Tips">
+        <p>Pug Puppies: Care and Health Tips</p>
+    </div>
+
+    <!-- Article 21 -->
+    <div class="img-container" onclick="window.location.href='articles/article-21.html'">
+        <img src="images/pupp (21).jpg" alt="Australian Shepherd Puppies: Care and Training">
+        <p>Australian Shepherd Puppies: Care and Training</p>
+    </div>
+
+    <!-- Article 22 -->
+    <div class="img-container" onclick="window.location.href='articles/article-22.html'">
+        <img src="images/pupp (22).jpg" alt="Border Collie Puppies: Training and Care">
+        <p>Border Collie Puppies: Training and Care</p>
+    </div>
+
+    <!-- Article 23 -->
+    <div class="img-container" onclick="window.location.href='articles/article-23.html'">
+        <img src="images/pupp (23).jpg" alt="Bichon Frise Puppies: Grooming and Care">
+        <p>Bichon Frise Puppies: Grooming and Care</p>
+    </div>
+
+    <!-- Article 24 -->
+    <div class="img-container" onclick="window.location.href='articles/article-24.html'">
+        <img src="images/pupp (24).jpg" alt="Maltese Puppies: Care and Grooming Tips">
+        <p>Maltese Puppies: Care and Grooming Tips</p>
+    </div>
+</div>
+<!-- Page 2 (25-48) -->
+<div class="gallery" id="page2" style="display: none;">
+    <!-- Article 25 -->
+    <div class="img-container" onclick="window.location.href='articles/article-25.html'">
+        <img src="images/pupp (25).jpg" alt="Bernese Mountain Dog Puppies: Health and Care">
+        <p>Bernese Mountain Dog Puppies: Health and Care</p>
+    </div>
+
+    <!-- Article 26 -->
+    <div class="img-container" onclick="window.location.href='articles/article-26.html'">
+        <img src="images/pupp (26).jpg" alt="Cavalier King Charles Spaniel Puppies: Care Tips">
+        <p>Cavalier King Charles Spaniel Puppies: Care Tips</p>
+    </div>
+
+    <!-- Article 27 -->
+    <div class="img-container" onclick="window.location.href='articles/article-27.html'">
+        <img src="images/pupp (27).jpg" alt="Shetland Sheepdog Puppies: Training and Care">
+        <p>Shetland Sheepdog Puppies: Training and Care</p>
+    </div>
+
+    <!-- Article 28 -->
+    <div class="img-container" onclick="window.location.href='articles/article-28.html'">
+        <img src="images/pupp (28).jpg" alt="Boston Terrier Puppies: Health and Care Guide">
+        <p>Boston Terrier Puppies: Health and Care Guide</p>
+    </div>
+
+    <!-- Article 29 -->
+    <div class="img-container" onclick="window.location.href='articles/article-29.html'">
+        <img src="images/pupp (29).jpg" alt="Newfoundland Puppies: Care and Training">
+        <p>Newfoundland Puppies: Care and Training</p>
+    </div>
+
+    <!-- Article 30 -->
+    <div class="img-container" onclick="window.location.href='articles/article-30.html'">
+        <img src="images/pupp (30).jpg" alt="Pembroke Welsh Corgi Puppies: Care and Health Tips">
+        <p>Pembroke Welsh Corgi Puppies: Care and Health Tips</p>
+    </div>
+
+    <!-- Article 31 -->
+    <div class="img-container" onclick="window.location.href='articles/article-31.html'">
+        <img src="images/pupp (31).jpg" alt="Puppy Dental Care: Preventing Early Tooth Decay">
+        <p>Puppy Dental Care: Preventing Early Tooth Decay</p>
+    </div>
+
+    <!-- Article 32 -->
+    <div class="img-container" onclick="window.location.href='articles/article-32.html'">
+        <img src="images/pupp (32).jpg" alt="Puppy Exercise Requirements by Breed Size">
+        <p>Puppy Exercise Requirements by Breed Size</p>
+    </div>
+
+    <!-- Article 33 -->
+    <div class="img-container" onclick="window.location.href='articles/article-33.html'">
+        <img src="images/pupp (33).jpg" alt="Establishing Healthy Sleep Patterns in Puppies">
+        <p>Establishing Healthy Sleep Patterns in Puppies</p>
+    </div>
+
+    <!-- Article 34 -->
+    <div class="img-container" onclick="window.location.href='articles/article-34.html'">
+        <img src="images/pupp (34).jpg" alt="Puppy Grooming: Maintaining Healthy Skin and Coat">
+        <p>Puppy Grooming: Maintaining Healthy Skin and Coat</p>
+    </div>
+
+    <!-- Article 35 -->
+    <div class="img-container" onclick="window.location.href='articles/article-35.html'">
+        <img src="images/pupp (35).jpg" alt="Reducing Separation Anxiety in Puppies">
+        <p>Reducing Separation Anxiety in Puppies</p>
+    </div>
+
+    <!-- Article 36 -->
+    <div class="img-container" onclick="window.location.href='articles/article-36.html'">
+        <img src="images/pupp (36).jpg" alt="Balanced Diets for Puppies: Macronutrient Ratios">
+        <p>Balanced Diets for Puppies: Macronutrient Ratios</p>
+    </div>
+
+    <!-- Article 37 -->
+    <div class="img-container" onclick="window.location.href='articles/article-37.html'">
+        <img src="images/pupp (37).jpg" alt="Comprehensive Parasite Protection for Puppies">
+        <p>Comprehensive Parasite Protection for Puppies</p>
+    </div>
+
+    <!-- Article 38 -->
+    <div class="img-container" onclick="window.location.href='articles/article-38.html'">
+        <img src="images/pupp (38).jpg" alt="Foundational Obedience Training for Puppies">
+        <p>Foundational Obedience Training for Puppies</p>
+    </div>
+
+    <!-- Article 39 -->
+    <div class="img-container" onclick="window.location.href='articles/article-39.html'">
+        <img src="images/pupp (39).jpg" alt="Emergency First Aid Kit Essentials for Puppy Owners">
+        <p>Emergency First Aid Kit Essentials for Puppy Owners</p>
+    </div>
+
+    <!-- Article 40 -->
+    <div class="img-container" onclick="window.location.href='articles/article-40.html'">
+        <img src="images/pupp (40).jpg" alt="Safe Socialization Practices for Unvaccinated Puppies">
+        <p>Safe Socialization Practices for Unvaccinated Puppies</p>
+    </div>
+
+    <!-- Article 41 -->
+    <div class="img-container" onclick="window.location.href='articles/article-41.html'">
+        <img src="images/pupp (41).jpg" alt="Tracking Healthy Puppy Growth: Weight Charts">
+        <p>Tracking Healthy Puppy Growth: Weight Charts</p>
+    </div>
+
+    <!-- Article 42 -->
+    <div class="img-container" onclick="window.location.href='articles/article-42.html'">
+        <img src="images/pupp (42).jpg" alt="Safe Car Travel Practices for Puppies">
+        <p>Safe Car Travel Practices for Puppies</p>
+    </div>
+
+    <!-- Article 43 -->
+    <div class="img-container" onclick="window.location.href='articles/article-43.html'">
+        <img src="images/pupp (43).jpg" alt="Understanding Appropriate Puppy Play">
+        <p>Understanding Appropriate Puppy Play</p>
+    </div>
+
+    <!-- Article 44 -->
+    <div class="img-container" onclick="window.location.href='articles/article-44.html'">
+        <img src="images/pupp (44).jpg" alt="Optimal Age for Spay/Neuter by Breed">
+        <p>Optimal Age for Spay/Neuter by Breed</p>
+    </div>
+
+    <!-- Article 45 -->
+    <div class="img-container" onclick="window.location.href='articles/article-45.html'">
+        <img src="images/pupp (45).jpg" alt="Puppy Identification Methods: Beyond Microchipping">
+        <p>Puppy Identification Methods: Beyond Microchipping</p>
+    </div>
+
+    <!-- Article 46 -->
+    <div class="img-container" onclick="window.location.href='articles/article-46.html'">
+        <img src="images/pupp (46).jpg" alt="Summer Puppy Care: Preventing Heatstroke">
+        <p>Summer Puppy Care: Preventing Heatstroke</p>
+    </div>
+
+    <!-- Article 47 -->
+    <div class="img-container" onclick="window.location.href='articles/article-47.html'">
+        <img src="images/pupp (47).jpg" alt="Identifying and Managing Puppy Allergies">
+        <p>Identifying and Managing Puppy Allergies</p>
+    </div>
+
+    <!-- Article 48 -->
+    <div class="img-container" onclick="window.location.href='articles/article-48.html'">
+        <img src="images/pupp (48).jpg" alt="Navigating Puppy Fear Development Stages">
+        <p>Navigating Puppy Fear Development Stages</p>
+    </div>
+</div>
+<!-- Page 3 (49-64) -->
+<div class="gallery" id="page3" style="display: none;">
+    <!-- Article 49 -->
+    <div class="img-container" onclick="window.location.href='articles/article-49.html'">
+        <img src="images/pupp (49).jpg" alt="Proper Hydration for Puppies: Daily Requirements">
+        <p>Proper Hydration for Puppies: Daily Requirements</p>
+    </div>
+
+    <!-- Article 50 -->
+    <div class="img-container" onclick="window.location.href='articles/article-50.html'">
+        <img src="images/pupp (50).jpg" alt="Choosing Safe Collars for Growing Puppies">
+        <p>Choosing Safe Collars for Growing Puppies</p>
+    </div>
+
+    <!-- Article 51 -->
+    <div class="img-container" onclick="window.location.href='articles/article-51.html'">
+        <img src="images/pupp (51).jpg" alt="DNA Testing for Puppies: Breed-Specific Risks">
+        <p>DNA Testing for Puppies: Breed-Specific Risks</p>
+    </div>
+
+    <!-- Article 52 -->
+    <div class="img-container" onclick="window.location.href='articles/article-52.html'">
+        <img src="images/pupp (52).jpg" alt="Stress-Free Nail Trimming Techniques">
+        <p>Stress-Free Nail Trimming Techniques</p>
+    </div>
+
+    <!-- Article 53 -->
+    <div class="img-container" onclick="window.location.href='articles/article-53.html'">
+        <img src="images/pupp (53).jpg" alt="Benefits of Structured Puppy Play Sessions">
+        <p>Benefits of Structured Puppy Play Sessions</p>
+    </div>
+
+    <!-- Article 54 -->
+    <div class="img-container" onclick="window.location.href='articles/article-54.html'">
+        <img src="images/pupp (54).jpg" alt="Therapeutic Massage for Puppy Development">
+        <p>Therapeutic Massage for Puppy Development</p>
+    </div>
+
+    <!-- Article 55 -->
+    <div class="img-container" onclick="window.location.href='articles/article-55.html'">
+        <img src="images/pupp (55).jpg" alt="Introducing Puppies to Water Safely">
+        <p>Introducing Puppies to Water Safely</p>
+    </div>
+
+    <!-- Article 56 -->
+    <div class="img-container" onclick="window.location.href='articles/article-56.html'">
+        <img src="images/pupp (56).jpg" alt="Redirecting Natural Digging Instincts">
+        <p>Redirecting Natural Digging Instincts</p>
+    </div>
+
+    <!-- Article 57 -->
+    <div class="img-container" onclick="window.location.href='articles/article-57.html'">
+        <img src="images/pupp (57).jpg" alt="Understanding Puppy REM Sleep Patterns">
+        <p>Understanding Puppy REM Sleep Patterns</p>
+    </div>
+
+    <!-- Article 58 -->
+    <div class="img-container" onclick="window.location.href='articles/article-58.html'">
+        <img src="images/pupp (58).jpg" alt="Pet Insurance Considerations for Puppies">
+        <p>Pet Insurance Considerations for Puppies</p>
+    </div>
+
+    <!-- Article 59 -->
+    <div class="img-container" onclick="window.location.href='articles/article-59.html'">
+        <img src="images/pupp (59).jpg" alt="Introducing Nose Work to Puppies">
+        <p>Introducing Nose Work to Puppies</p>
+    </div>
+
+    <!-- Article 60 -->
+    <div class="img-container" onclick="window.location.href='articles/article-60.html'">
+        <img src="images/pupp (60).jpg" alt="Essential Grooming Tools by Coat Type">
+        <p>Essential Grooming Tools by Coat Type</p>
+    </div>
+
+    <!-- Article 61 -->
+    <div class="img-container" onclick="window.location.href='articles/article-61.html'">
+        <img src="images/pupp (61).jpg" alt="Reducing Motion Sickness in Puppies">
+        <p>Reducing Motion Sickness in Puppies</p>
+    </div>
+
+    <!-- Article 62 -->
+    <div class="img-container" onclick="window.location.href='articles/article-62.html'">
+        <img src="images/pupp (62).jpg" alt="Managing Natural Herding Behaviors">
+        <p>Managing Natural Herding Behaviors</p>
+    </div>
+
+    <!-- Article 63 -->
+    <div class="img-container" onclick="window.location.href='articles/article-63.html'">
+        <img src="images/pupp (63).jpg" alt="Smooth Transition Strategies for Rescue Puppies">
+        <p>Smooth Transition Strategies for Rescue Puppies</p>
+    </div>
+
+    <!-- Article 64 -->
+    <div class="img-container" onclick="window.location.href='articles/article-64.html'">
+        <img src="images/pupp (64).jpg" alt="Introducing Agility Foundations to Puppies">
+        <p>Introducing Agility Foundations to Puppies</p>
+    </div>
+</div>
+		
+        <div class="gallery" id="page1"></div>
+        <div class="gallery" id="page2" style="display: none;"></div>
+        <div class="gallery" id="page3" style="display: none;"></div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            <button id="prevBtn" class="disabled">Previous</button>
+            <button id="page1Btn" class="active">1</button>
+            <button id="page2Btn">2</button>
+            <button id="page3Btn">3</button>
+            <button id="nextBtn">Next</button>
         </div>
     </section>
 
@@ -61,6 +520,65 @@
 
     <!-- Back-to-Top Button -->
     <button id="back-to-top" onclick="topFunction()">Top</button>
+
     <script src="js/script.js"></script>
+    <script>
+        // Pagination Logic
+        let currentPage = 1;
+        const totalPages = 3;
+
+        function showPage(page) {
+            // Hide all pages
+            document.querySelectorAll('.gallery').forEach(gallery => {
+                gallery.style.display = 'none';
+            });
+
+            // Show selected page
+            document.getElementById(`page${page}`).style.display = 'grid';
+
+            // Update button states
+            document.querySelectorAll('.pagination button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`page${page}Btn`).classList.add('active');
+
+            // Update Previous/Next buttons
+            document.getElementById('prevBtn').className = page === 1 ? 'disabled' : '';
+            document.getElementById('nextBtn').className = page === totalPages ? 'disabled' : '';
+
+            currentPage = page;
+        }
+
+        // Event Listeners
+        document.getElementById('page1Btn').addEventListener('click', () => showPage(1));
+        document.getElementById('page2Btn').addEventListener('click', () => showPage(2));
+        document.getElementById('page3Btn').addEventListener('click', () => showPage(3));
+        
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPage > 1) showPage(currentPage - 1);
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentPage < totalPages) showPage(currentPage + 1);
+        });
+
+        // Scroll Functionality
+        window.onscroll = function() {
+            scrollFunction();
+        };
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                document.getElementById("back-to-top").style.display = "block";
+            } else {
+                document.getElementById("back-to-top").style.display = "none";
+            }
+        }
+
+        function topFunction() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+    </script>
 </body>
 </html>

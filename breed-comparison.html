@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B4163485NL"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B4163485NL');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compare different dog breeds side by side - characteristics, temperament, size, care requirements and more at Paws & Tails.">
+    <meta name="keywords" content="dog breed comparison, compare puppies, dog breeds, puppy characteristics, breed selection">
+    <title>Breed Comparison - Paws & Tails</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .comparison-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .breed-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .selector-group {
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+        }
+
+        .selector-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .selector-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--input-border-color);
+            border-radius: 5px;
+            background-color: var(--form-background);
+            color: var(--text-color);
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .compare-button {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .compare-button button {
+            padding: 12px 30px;
+            background-color: var(--button-background);
+            color: var(--button-text-color);
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .compare-button button:hover {
+            background-color: var(--button-hover-background);
+        }
+
+        .comparison-results {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--section-background);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--input-border-color);
+        }
+
+        .comparison-table th {
+            background-color: var(--header-background);
+            color: var(--header-text-color);
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table td:first-child {
+            font-weight: bold;
+            background-color: var(--form-background);
+            color: var(--heading-color);
+        }
+
+        .comparison-table td:not(:first-child) {
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .breed-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .introduction {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .introduction h2 {
+            color: var(--heading-color);
+            margin-bottom: 1rem;
+        }
+
+        .introduction p {
+            color: var(--text-color);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-table {
+                font-size: 14px;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 10px;
+            }
+
+            .breed-image {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+    <button id="theme-switch" type="button">Toggle Theme</button>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="buy-sell.html">Buy/Sell Puppies</a></li>
+                <li><a href="breed-comparison.html">Breed Comparison</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="privacy.html">Privacy Policy</a></li>
+                <li><a href="faq.html">FAQs</a></li>
+            </ul>
+        </nav>
+        <h1>Dog Breed Comparison Tool</h1>
+        <p>Compare different dog breeds to find your perfect match!</p>
+    </header>
+
+    <section class="comparison-section">
+        <div class="introduction">
+            <h2>Find Your Perfect Puppy</h2>
+            <p>Use our breed comparison tool to compare the characteristics of different dog breeds side by side. Select two breeds from the dropdown menus below and click "Compare Breeds" to see detailed information about size, temperament, energy level, grooming needs, and more.</p>
+        </div>
+
+        <div class="breed-selector">
+            <div class="selector-group">
+                <label for="breed1">Select First Breed:</label>
+                <select id="breed1">
+                    <option value="">-- Choose a Breed --</option>
+                    <option value="golden_retriever">Golden Retriever</option>
+                    <option value="labrador_retriever">Labrador Retriever</option>
+                    <option value="german_shepherd">German Shepherd</option>
+                    <option value="french_bulldog">French Bulldog</option>
+                    <option value="poodle">Poodle</option>
+                    <option value="bulldog">Bulldog</option>
+                    <option value="beagle">Beagle</option>
+                    <option value="rottweiler">Rottweiler</option>
+                    <option value="dachshund">Dachshund</option>
+                    <option value="boxer">Boxer</option>
+                    <option value="shih_tzu">Shih Tzu</option>
+                    <option value="siberian_husky">Siberian Husky</option>
+                    <option value="chihuahua">Chihuahua</option>
+                    <option value="pomeranian">Pomeranian</option>
+                    <option value="great_dane">Great Dane</option>
+                    <option value="cocker_spaniel">Cocker Spaniel</option>
+                    <option value="dalmatian">Dalmatian</option>
+                    <option value="yorkshire_terrier">Yorkshire Terrier</option>
+                    <option value="pug">Pug</option>
+                    <option value="australian_shepherd">Australian Shepherd</option>
+                    <option value="border_collie">Border Collie</option>
+                    <option value="bichon_frise">Bichon Frise</option>
+                    <option value="maltese">Maltese</option>
+                    <option value="bernese_mountain_dog">Bernese Mountain Dog</option>
+                    <option value="cavalier_king_charles">Cavalier King Charles Spaniel</option>
+                </select>
+            </div>
+
+            <div class="selector-group">
+                <label for="breed2">Select Second Breed:</label>
+                <select id="breed2">
+                    <option value="">-- Choose a Breed --</option>
+                    <option value="golden_retriever">Golden Retriever</option>
+                    <option value="labrador_retriever">Labrador Retriever</option>
+                    <option value="german_shepherd">German Shepherd</option>
+                    <option value="french_bulldog">French Bulldog</option>
+                    <option value="poodle">Poodle</option>
+                    <option value="bulldog">Bulldog</option>
+                    <option value="beagle">Beagle</option>
+                    <option value="rottweiler">Rottweiler</option>
+                    <option value="dachshund">Dachshund</option>
+                    <option value="boxer">Boxer</option>
+                    <option value="shih_tzu">Shih Tzu</option>
+                    <option value="siberian_husky">Siberian Husky</option>
+                    <option value="chihuahua">Chihuahua</option>
+                    <option value="pomeranian">Pomeranian</option>
+                    <option value="great_dane">Great Dane</option>
+                    <option value="cocker_spaniel">Cocker Spaniel</option>
+                    <option value="dalmatian">Dalmatian</option>
+                    <option value="yorkshire_terrier">Yorkshire Terrier</option>
+                    <option value="pug">Pug</option>
+                    <option value="australian_shepherd">Australian Shepherd</option>
+                    <option value="border_collie">Border Collie</option>
+                    <option value="bichon_frise">Bichon Frise</option>
+                    <option value="maltese">Maltese</option>
+                    <option value="bernese_mountain_dog">Bernese Mountain Dog</option>
+                    <option value="cavalier_king_charles">Cavalier King Charles Spaniel</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="compare-button">
+            <button onclick="compareBreeds()">Compare Breeds</button>
+        </div>
+
+        <div class="comparison-results" id="comparisonResults">
+            <h2 style="text-align: center; color: var(--heading-color);">Comparison Results</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Characteristic</th>
+                        <th id="breed1Name">Breed 1</th>
+                        <th id="breed2Name">Breed 2</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonTableBody">
+                    <!-- Results will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2023 Paws & Tails. All rights reserved.</p>
+    </footer>
+
+    <button id="back-to-top" onclick="topFunction()">Top</button>
+
+    <script src="js/script.js"></script>
+    <script>
+        const breedData = {
+            golden_retriever: {
+                name: "Golden Retriever",
+                image: "images/pupp (1).jpg",
+                size: "Large (55-75 lbs)",
+                height: "21-24 inches",
+                lifespan: "10-12 years",
+                temperament: "Friendly, Intelligent, Devoted",
+                energy_level: "High",
+                grooming: "Moderate (Weekly brushing)",
+                trainability: "Very High",
+                good_with_children: "Excellent",
+                good_with_pets: "Excellent",
+                barking: "Moderate",
+                exercise_needs: "High (1-2 hours daily)",
+                health_issues: "Hip dysplasia, Cancer",
+                living_conditions: "House with yard preferred",
+                care_level: "Moderate"
+            },
+            labrador_retriever: {
+                name: "Labrador Retriever",
+                image: "images/pupp (2).jpg",
+                size: "Large (55-80 lbs)",
+                height: "21-24 inches",
+                lifespan: "10-12 years",
+                temperament: "Outgoing, Friendly, Active",
+                energy_level: "Very High",
+                grooming: "Low (Weekly brushing)",
+                trainability: "Very High",
+                good_with_children: "Excellent",
+                good_with_pets: "Excellent",
+                barking: "Moderate",
+                exercise_needs: "Very High (2+ hours daily)",
+                health_issues: "Hip dysplasia, Obesity",
+                living_conditions: "House with yard preferred",
+                care_level: "Moderate"
+            },
+            german_shepherd: {
+                name: "German Shepherd",
+                image: "images/pupp (3).jpg",
+                size: "Large (50-90 lbs)",
+                height: "22-26 inches",
+                lifespan: "9-13 years",
+                temperament: "Confident, Courageous, Smart",
+                energy_level: "Very High",
+                grooming: "Moderate (Regular brushing)",
+                trainability: "Very High",
+                good_with_children: "Good (with training)",
+                good_with_pets: "Good (with socialization)",
+                barking: "High",
+                exercise_needs: "High (2 hours daily)",
+                health_issues: "Hip dysplasia, Bloat",
+                living_conditions: "House with yard preferred",
+                care_level: "Moderate to High"
+            },
+            french_bulldog: {
+                name: "French Bulldog",
+                image: "images/pupp (4).jpg",
+                size: "Small (16-28 lbs)",
+                height: "11-13 inches",
+                lifespan: "10-12 years",
+                temperament: "Playful, Adaptable, Smart",
+                energy_level: "Low to Moderate",
+                grooming: "Low (Weekly cleaning)",
+                trainability: "Moderate",
+                good_with_children: "Excellent",
+                good_with_pets: "Good",
+                barking: "Low",
+                exercise_needs: "Low (30 min daily)",
+                health_issues: "Breathing issues, Hip dysplasia",
+                living_conditions: "Apartment friendly",
+                care_level: "Moderate"
+            },
+            poodle: {
+                name: "Poodle",
+                image: "images/pupp (5).jpg",
+                size: "Standard: 45-70 lbs",
+                height: "15+ inches (Standard)",
+                lifespan: "12-15 years",
+                temperament: "Intelligent, Active, Alert",
+                energy_level: "High",
+                grooming: "High (Daily brushing, regular clips)",
+                trainability: "Very High",
+                good_with_children: "Excellent",
+                good_with_pets: "Good",
+                barking: "Moderate",
+                exercise_needs: "High (1 hour daily)",
+                health_issues: "Hip dysplasia, Eye problems",
+                living_conditions: "Adaptable",
+                care_level: "High"
+            },
+            bulldog: {
+                name: "Bulldog",
+                image: "images/pupp (6).jpg",
+                size: "Medium (40-50 lbs)",
+                height: "14-15 inches",
+                lifespan: "8-10 years",
+                temperament: "Calm, Friendly, Courageous",
+                energy_level: "Low",
+                grooming: "Moderate (Regular cleaning)",
+                trainability: "Moderate",
+                good_with_children: "Excellent",
+                good_with_pets: "Good",
+                barking: "Low",
+                exercise_needs: "Low (20-30 min daily)",
+                health_issues: "Breathing issues, Joint problems",
+                living_conditions: "Apartment friendly",
+                care_level: "Moderate to High"
+            },
+            beagle: {
+                name: "Beagle",
+                image: "images/pupp (7).jpg",
+                size: "Small to Medium (20-30 lbs)",
+                height: "13-15 inches",
+                lifespan: "10-15 years",
+                temperament: "Friendly, Curious, Merry",
+                energy_level: "High",
+                grooming: "Low (Weekly brushing)",
+                trainability: "Moderate",
+                good_with_children: "Excellent",
+                good_with_pets: "Excellent",
+                barking: "High",
+                exercise_needs: "Moderate to High (1 hour daily)",
+                health_issues: "Hip dysplasia, Epilepsy",
+                living_conditions: "House with yard preferred",
+                care_level: "Moderate"
+            },
+            rottweiler: {
+                name: "Rottweiler",
+                image: "images/pupp (8).jpg",
+                size: "Large (80-135 lbs)",
+                height: "22-27 inches",
+                lifespan: "8-10 years",
+                temperament: "Confident, Loyal, Protective",
+                energy_level: "Moderate to High",
+                grooming: "Low (Weekly brushing)",
+                trainability: "High",
+                good_with_children: "Good (with training)",
+                good_with_pets: "Moderate (needs socialization)",
+                barking: "Moderate",
+                exercise_needs: "Moderate (1 hour daily)",
+                health_issues: "Hip dysplasia, Heart issues",
+                living_conditions: "House with yard preferred",
+                care_level: "Moderate to High"
+            },
+            dachshund: {
+                name: "Dachshund",
+                image: "images/pupp (9).jpg",
+                size: "Small (16-32 lbs)",
+                height: "8-9 inches",
+                lifespan: "12-16 years",
+                temperament: "Curious, Clever, Courageous",
+                energy_level: "Moderate",
+                grooming: "Low to Moderate",
+                trainability: "Moderate",
+                good_with_children: "Good",
+                good_with_pets: "Moderate",
+                barking: "High",
+                exercise_needs: "Moderate (30-45 min daily)",
+                health_issues: "Back problems, Obesity",
+                living_conditions: "Apartment friendly",
+                care_level: "Moderate"
+            },
+            boxer: {
+                name: "Boxer",
+                image: "images/pupp (10).jpg",
+                size: "Large (50-80 lbs)",
+                height: "21-25 inches",
+                lifespan: "10-12 years",
+                temperament: "Playful, Energetic, Loyal",
+                energy_level: "Very High",
+                grooming: "Low (Weekly brushing)",
+                trainability: "High",
+                good_with_children: "Excellent",
+                good_with_pets: "Good",
+                barking: "Moderate",
+                exercise_needs: "High (1-2 hours daily)",
+                health_issues: "Heart problems, Cancer",
+                living_conditions: "House with yard preferred",
+                care_level: "Moderate"
+            },
+            shih_tzu: {
+                name: "Shih Tzu",
+                image: "images/pupp (11).jpg",
+                size: "Small (9-16 lbs)",
+                height: "9-10 inches",
+                lifespan: "10-18 years",
+                temperament: "Affectionate, Outgoing, Playful",
+                energy_level: "Low to Moderate",
+                grooming: "High (Daily brushing)",
+                trainability: "Moderate",
+                good_with_children: "Good",
+                good_with_pets: "Excellent",
+                barking: "Moderate",
+                exercise_needs: "Low (20-30 min daily)",
+                health_issues: "Eye problems, Breathing issues",
+                living_conditions: "Apartment friendly",
+                care_level: "High"
+            },
+            siberian_husky: {
+                name: "Siberian Husky",
+                image: "images/pupp (12).jpg",
+                size: "Medium to Large (35-60 lbs)",
+                height: "20-23 inches",
+                lifespan: "12-14 years",
+                temperament: "Outgoing, Friendly, Alert",
+                energy_level: "Very High",
+                grooming: "Moderate (Regular brushing)",
+                trainability: "Moderate",
+                good_with_children: "Excellent",
+                good_with_pets: "Moderate",
+                barking: "Moderate to High",
+                exercise_needs: "Very High (2+ hours daily)",
+                health_issues: "Hip dysplasia, Eye problems",
+                living_conditions: "House with yard required",
+                care_level: "Moderate to High"
+            },
+            chihuahua: {
+                name: "Chihuahua",
+                image: "images/pupp (13).jpg",
+                size: "Tiny (2-6 lbs)",
+                height: "5-8 inches",
+                lifespan: "14-16 years",
+                temperament: "Alert, Sassy, Confident",
+                energy_level: "Moderate",
+                grooming: "Low",
+                trainability: "Moderate",
+                good_with_children: "Moderate (better with older kids)",
+                good_with_pets: "Moderate",
+                barking: "High",
+                exercise_needs: "Low (20-30 min daily)",
+                health_issues: "Dental issues, Heart problems",
+                living_conditions: "Apartment friendly",
+                care_level: "Low to Moderate"
+            },
+            pomeranian: {
+                name: "Pomeranian",
+                image: "images/pupp (14).jpg",
+                size: "Tiny (3-7 lbs)",
+                height: "6-7 inches",
+                lifespan: "12-16 years",
+                temperament: "Bold, Lively, Inquisitive",
+                energy_level: "Moderate to High",
+                grooming: "High (Daily brushing)",
+                trainability: "Moderate",
+                good_with_children: "Good (with older kids)",
+                good_with_pets: "Moderate",
+                barking: "High",
+                exercise_needs: "Moderate (30 min daily)",
+                health_issues: "Dental issues, Luxating patella",
+                living_conditions: "Apartment friendly",
+                care_level: "Moderate to High"
+            },
+            great_dane: {
+                name: "Great Dane",
+                image: "images/pupp (15).jpg",
+                size: "Giant (110-175 lbs)",
+                height: "28-32 inches",
+                lifespan: "7-10 years",
+                temperament: "Friendly, Patient, Dependable",
+                energy_level: "Moderate",
+                grooming: "Low (Weekly brushing)",
+                trainability: "High",
+                good_with_children: "Excellent",
+                good_with_pets: "Good",
+                barking: "Low to Moderate",
+                exercise_needs: "Moderate (1 hour daily)",
+                health_issues: "Bloat, Heart disease",
+                living_conditions: "Large house with space",
+                care_level: "Moderate to High"
+            },
+            cocker_spaniel: {
+                name: "Cocker Spaniel",
+                image: "images/pupp (16).jpg",
+                size: "Medium (20-30 lbs)",
+                height: "13-15 inches",
+                lifespan: "10-14 years",
+                temperament: "Gentle, Happy, Friendly",
+                energy_level: "Moderate",
+                grooming: "High (Regular brushing, trimming)",
+                trainability: "High",
+                good_with_children: "Excellent",
+                good_with_pets: "Excellent",
+                barking: "Moderate",
+                exercise_needs: "Moderate (45 min daily)",
+                health_issues: "Ear infections, Eye problems",
+                living_conditions: "Adaptable",
+                care_level: "Moderate to High"
+            },
+            dalmatian: {
+                name: "Dalmatian",
+                image: "images/pupp (17).jpg",
+                size: "Medium to Large (45-70 lbs)",
+                height: "19-24 inches",
+                lifespan: "11-13 years",
+                temperament: "Outgoing, Friendly, Energetic",
+                energy_level: "Very High",
+                grooming: "Low to Moderate",
+                trainability: "Moderate to High",
+                good_with_children: "Good",
+                good_with_pets: "Good",
+                barking: "Moderate",
+                exercise_needs: "Very High (2 hours daily)",
+                health_issues: "Deafness, Urinary stones",
+                living_conditions: "House with yard required",
+                care_level: "Moderate"
+            },
+            yorkshire_terrier: {
+                name: "Yorkshire Terrier",
+                image: "images/pupp (18).jpg",
+                size: "Tiny (4-7 lbs)",
+                height: "7-8 inches",
+                lifespan: "11-15 years",
+                temperament: "Affectionate, Sprightly, Bold",
+                energy_level: "Moderate",
+                grooming: "High (Daily brushing)",
+                trainability: "Moderate",
+                good_with_children: "Moderate (better with older kids)",
+                good_with_pets: "Moderate",
+                barking: "High",
+                exercise_needs: "Low to Moderate (30 min daily)",
+                health_issues: "Dental issues, Luxating patella",
+                living_conditions: "Apartment friendly",
+                care_level: "High"
+            },
+            pug: {
+                name: "Pug",
+                image: "images/pupp (20).jpg",
+                size: "Small (14-18 lbs)",
+                height: "10-13 inches",
+                lifespan: "13-15 years",
+                temperament: "Charming, Mischievous, Loving",
+                energy_level: "Low to Moderate",
+                grooming: "Low (Weekly brushing)",
+                trainability: "Moderate",
+                good_with_children: "Excellent",
+                good_with_pets: "Excellent",
+                barking: "Low to Moderate",
+                exercise_needs: "Low (20-30 min daily)",
+                health_issues: "Breathing issues, Eye problems",
+                living_conditions: "Apartment friendly",
+                care_level: "Moderate"
+            },
+            australian_shepherd: {
+                name: "Australian Shepherd",
+                image: "images/pupp (21).jpg",
+                size: "Medium (40-65 lbs)",
+                height: "18-23 inches",
+                lifespan: "12-15 years",
+                temperament: "Smart, Work-oriented, Exuberant",
+                energy_level: "Very High",
+                grooming: "Moderate (Weekly brushing)",
+                trainability: "Very High",
+                good_with_children: "Excellent",
+                good_with_pets: "Good",
+                barking: "Moderate",
+                exercise_needs: "Very High (2+ hours daily)",
+                health_issues: "Hip dysplasia, Eye problems",
+                living_conditions: "House with yard required",
+                care_level: "Moderate to High"
+            },
+            border_collie: {
+                name: "Border Collie",
+                image: "images/pupp (22).jpg",
+                size: "Medium (30-55 lbs)",
+                height: "18-22 inches",
+                lifespan: "12-15 years",
+                temperament: "Intelligent, Energetic, Alert",
+                energy_level: "Very High",
+                grooming: "Moderate (Weekly brushing)",
+                trainability: "Very High",
+                good_with_children: "Good (may try to herd)",
+                good_with_pets: "Good",
+                barking: "Moderate to High",
+                exercise_needs: "Very High (2+ hours daily)",
+                health_issues: "Hip dysplasia, Eye problems",
+                living_conditions: "House with yard required",
+                care_level: "High"
+            },
+            bichon_frise: {
+                name: "Bichon Frise",
+                image: "images/pupp (23).jpg",
+                size: "Small (12-18 lbs)",
+                height: "9-12 inches",
+                lifespan: "14-15 years",
+                temperament: "Playful, Curious, Gentle",
+                energy_level: "Moderate",
+                grooming: "High (Daily brushing, regular clips)",
+                trainability: "Moderate to High",
+                good_with_children: "Excellent",
+                good_with_pets: "Excellent",
+                barking: "Moderate",
+                exercise_needs: "Moderate (30-45 min daily)",
+                health_issues: "Allergies, Bladder issues",
+                living_conditions: "Apartment friendly",
+                care_level: "Moderate to High"
+            },
+            maltese: {
+                name: "Maltese",
+                image: "images/pupp (24).jpg",
+                size: "Tiny (4-7 lbs)",
+                height: "7-9 inches",
+                lifespan: "12-15 years",
+                temperament: "Gentle, Playful, Charming",
+                energy_level: "Low to Moderate",
+                grooming: "High (Daily brushing)",
+                trainability: "Moderate",
+                good_with_children: "Good (better with older kids)",
+                good_with_pets: "Good",
+                barking: "Moderate to High",
+                exercise_needs: "Low (20-30 min daily)",
+                health_issues: "Dental issues, Eye problems",
+                living_conditions: "Apartment friendly",
+                care_level: "High"
+            },
+            bernese_mountain_dog: {
+                name: "Bernese Mountain Dog",
+                image: "images/pupp (25).jpg",
+                size: "Large (70-115 lbs)",
+                height: "23-28 inches",
+                lifespan: "7-10 years",
+                temperament: "Good-natured, Calm, Strong",
+                energy_level: "Moderate",
+                grooming: "Moderate to High (Regular brushing)",
+                trainability: "High",
+                good_with_children: "Excellent",
+                good_with_pets: "Excellent",
+                barking: "Low to Moderate",
+                exercise_needs: "Moderate (1 hour daily)",
+                health_issues: "Hip dysplasia, Cancer",
+                living_conditions: "House with yard preferred",
+                care_level: "Moderate"
+            },
+            cavalier_king_charles: {
+                name: "Cavalier King Charles Spaniel",
+                image: "images/pupp (26).jpg",
+                size: "Small (13-18 lbs)",
+                height: "12-13 inches",
+                lifespan: "12-15 years",
+                temperament: "Affectionate, Gentle, Graceful",
+                energy_level: "Moderate",
+                grooming: "Moderate (Regular brushing)",
+                trainability: "High",
+                good_with_children: "Excellent",
+                good_with_pets: "Excellent",
+                barking: "Low",
+                exercise_needs: "Moderate (30-45 min daily)",
+                health_issues: "Heart problems, Eye problems",
+                living_conditions: "Apartment friendly",
+                care_level: "Moderate"
+            }
+        };
+
+        function compareBreeds() {
+            const breed1 = document.getElementById('breed1').value;
+            const breed2 = document.getElementById('breed2').value;
+
+            if (!breed1 || !breed2) {
+                alert('Please select both breeds to compare!');
+                return;
+            }
+
+            if (breed1 === breed2) {
+                alert('Please select two different breeds!');
+                return;
+            }
+
+            const data1 = breedData[breed1];
+            const data2 = breedData[breed2];
+
+            // Update breed names in header
+            document.getElementById('breed1Name').textContent = data1.name;
+            document.getElementById('breed2Name').textContent = data2.name;
+
+            // Build comparison table
+            const tbody = document.getElementById('comparisonTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td>Image</td>
+                    <td><img src="${data1.image}" alt="${data1.name}" class="breed-image"></td>
+                    <td><img src="${data2.image}" alt="${data2.name}" class="breed-image"></td>
+                </tr>
+                <tr>
+                    <td>Size</td>
+                    <td>${data1.size}</td>
+                    <td>${data2.size}</td>
+                </tr>
+                <tr>
+                    <td>Height</td>
+                    <td>${data1.height}</td>
+                    <td>${data2.height}</td>
+                </tr>
+                <tr>
+                    <td>Lifespan</td>
+                    <td>${data1.lifespan}</td>
+                    <td>${data2.lifespan}</td>
+                </tr>
+                <tr>
+                    <td>Temperament</td>
+                    <td>${data1.temperament}</td>
+                    <td>${data2.temperament}</td>
+                </tr>
+                <tr>
+                    <td>Energy Level</td>
+                    <td>${data1.energy_level}</td>
+                    <td>${data2.energy_level}</td>
+                </tr>
+                <tr>
+                    <td>Grooming Needs</td>
+                    <td>${data1.grooming}</td>
+                    <td>${data2.grooming}</td>
+                </tr>
+                <tr>
+                    <td>Trainability</td>
+                    <td>${data1.trainability}</td>
+                    <td>${data2.trainability}</td>
+                </tr>
+                <tr>
+                    <td>Good with Children</td>
+                    <td>${data1.good_with_children}</td>
+                    <td>${data2.good_with_children}</td>
+                </tr>
+                <tr>
+                    <td>Good with Other Pets</td>
+                    <td>${data1.good_with_pets}</td>
+                    <td>${data2.good_with_pets}</td>
+                </tr>
+                <tr>
+                    <td>Barking Tendency</td>
+                    <td>${data1.barking}</td>
+                    <td>${data2.barking}</td>
+                </tr>
+                <tr>
+                    <td>Exercise Needs</td>
+                    <td>${data1.exercise_needs}</td>
+                    <td>${data2.exercise_needs}</td>
+                </tr>
+                <tr>
+                    <td>Common Health Issues</td>
+                    <td>${data1.health_issues}</td>
+                    <td>${data2.health_issues}</td>
+                </tr>
+                <tr>
+                    <td>Living Conditions</td>
+                    <td>${data1.living_conditions}</td>
+                    <td>${data2.living_conditions}</td>
+                </tr>
+                <tr>
+                    <td>Care Level</td>
+                    <td>${data1.care_level}</td>
+                    <td>${data2.care_level}</td>
+                </tr>
+            `;
+
+            // Show results
+            document.getElementById('comparisonResults').style.display = 'block';
+
+            // Scroll to results
+            document.getElementById('comparisonResults').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

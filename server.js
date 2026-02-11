@@ -48,8 +48,13 @@ app.use('/api/admin', adminRoutes);
 // Serve static files (AFTER admin and API routes)
 app.use(express.static(path.join(__dirname)));
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-    console.log(`Admin panel: http://localhost:${PORT}/admin`);
-});
+// Start server only when run directly (not when imported as module)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+        console.log(`Admin panel: http://localhost:${PORT}/admin`);
+    });
+}
+
+// Export for serverless
+module.exports = app;

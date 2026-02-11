@@ -40,7 +40,18 @@ const upload = multer({
 
 // Get all articles
 router.get('/', (req, res) => {
-    db.all('SELECT * FROM articles ORDER BY created_at DESC', [], (err, rows) => {
+    const status = req.query.status; // 'all', 'published', or 'draft'
+    
+    let sql = 'SELECT * FROM articles ORDER BY created_at DESC';
+    let params = [];
+    
+    if (status === 'published') {
+        sql = 'SELECT * FROM articles WHERE published = 1 ORDER BY created_at DESC';
+    } else if (status === 'draft') {
+        sql = 'SELECT * FROM articles WHERE published = 0 ORDER BY created_at DESC';
+    }
+    
+    db.all(sql, params, (err, rows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -63,46 +74,54 @@ router.get('/:slug', (req, res) => {
 
 // Create new article
 router.post('/', authenticateToken, upload.single('image'), (req, res) => {
-    const { title, content, excerpt, meta_description, meta_keywords, author } = req.body;
+    const { title, content, excerpt, meta_description, meta_keywords, author, published } = req.body;
     
     // Generate slug from title
     const slug = slugify(title, { lower: true, strict: true });
     
     // Get image URL if uploaded
     const imageUrl = req.file ? `/images/${req.file.filename}` : null;
-
-    const sql = `INSERT INTO articles (title, slug, content, excerpt, image_url, meta_description, meta_keywords, author) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
     
-    db.run(sql, [title, slug, content, excerpt, imageUrl, meta_description, meta_keywords, author || 'Paws & Tails'], function(err) {
+    // Parse published field (default to 1 if not provided)
+    const publishedValue = published !== undefined ? parseInt(published) : 1;
+
+    const sql = `INSERT INTO articles (title, slug, content, excerpt, image_url, meta_description, meta_keywords, author, published) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    db.run(sql, [title, slug, content, excerpt, imageUrl, meta_description, meta_keywords, author || 'Paws & Tails', publishedValue], function(err) {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
         
         const articleId = this.lastID;
         
-        // Generate HTML file for the article
-        generateArticleHTML(articleId, { id: articleId, title, slug, content, excerpt, image_url: imageUrl, meta_description, meta_keywords, author: author || 'Paws & Tails' });
+        // Only generate HTML file, update sitemap, and notify Google if published
+        if (publishedValue === 1) {
+            generateArticleHTML(articleId, { id: articleId, title, slug, content, excerpt, image_url: imageUrl, meta_description, meta_keywords, author: author || 'Paws & Tails' });
+            updateSitemap();
+            notifyGoogleIndexing(slug);
+        }
         
-        // Update sitemap
-        updateSitemap();
-        
-        // Notify Google for indexing
-        notifyGoogleIndexing(slug);
-        
-        res.json({ 
+        const message = publishedValue === 1 ? 'Article published successfully' : 'Article saved as draft';
+        const responseData = { 
             success: true, 
             articleId, 
             slug,
-            message: 'Article created successfully',
-            permalink: `${process.env.WEBSITE_URL}/articles/${slug}.html`
-        });
+            message
+        };
+        
+        // Only include permalink for published articles
+        if (publishedValue === 1) {
+            responseData.permalink = `${process.env.WEBSITE_URL}/articles/${slug}.html`;
+        }
+        
+        res.json(responseData);
     });
 });
 
 // Update article
 router.put('/:id', authenticateToken, upload.single('image'), (req, res) => {
-    const { title, content, excerpt, meta_description, meta_keywords, author } = req.body;
+    const { title, content, excerpt, meta_description, meta_keywords, author, published } = req.body;
     const articleId = req.params.id;
     
     // Generate new slug if title changed
@@ -127,27 +146,52 @@ router.put('/:id', authenticateToken, upload.single('image'), (req, res) => {
             imageUrl = `/images/${req.file.filename}`;
         }
         
+        // Parse published field (use existing value if not provided)
+        const publishedValue = published !== undefined ? parseInt(published) : article.published;
+        const wasPublished = article.published === 1;
+        const isNowPublished = publishedValue === 1;
+        
         const sql = `UPDATE articles 
                      SET title = ?, slug = ?, content = ?, excerpt = ?, image_url = ?, 
-                         meta_description = ?, meta_keywords = ?, author = ?, updated_at = CURRENT_TIMESTAMP
+                         meta_description = ?, meta_keywords = ?, author = ?, published = ?, updated_at = CURRENT_TIMESTAMP
                      WHERE id = ?`;
         
-        db.run(sql, [title, slug, content, excerpt, imageUrl, meta_description, meta_keywords, author || 'Paws & Tails', articleId], function(err) {
+        db.run(sql, [title, slug, content, excerpt, imageUrl, meta_description, meta_keywords, author || 'Paws & Tails', publishedValue, articleId], function(err) {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
             
-            // Regenerate HTML file
-            generateArticleHTML(articleId, { id: articleId, title, slug, content, excerpt, image_url: imageUrl, meta_description, meta_keywords, author: author || 'Paws & Tails' });
+            // Generate/delete HTML file based on published status
+            if (isNowPublished) {
+                // Generate HTML file if now published
+                generateArticleHTML(articleId, { id: articleId, title, slug, content, excerpt, image_url: imageUrl, meta_description, meta_keywords, author: author || 'Paws & Tails' });
+                updateSitemap();
+                
+                // Notify Google if newly published
+                if (!wasPublished) {
+                    notifyGoogleIndexing(slug);
+                }
+            } else if (wasPublished && !isNowPublished) {
+                // Delete HTML file if changed from published to draft
+                const htmlPath = path.join(__dirname, '../articles', `${slug}.html`);
+                if (fs.existsSync(htmlPath)) {
+                    fs.unlinkSync(htmlPath);
+                }
+                updateSitemap();
+            }
             
-            // Update sitemap
-            updateSitemap();
-            
-            res.json({ 
+            const message = isNowPublished ? 'Article updated and published' : 'Article updated as draft';
+            const responseData = {
                 success: true, 
-                message: 'Article updated successfully',
-                permalink: `${process.env.WEBSITE_URL}/articles/${slug}.html`
-            });
+                message
+            };
+            
+            // Only include permalink for published articles
+            if (isNowPublished) {
+                responseData.permalink = `${process.env.WEBSITE_URL}/articles/${slug}.html`;
+            }
+            
+            res.json(responseData);
         });
     });
 });

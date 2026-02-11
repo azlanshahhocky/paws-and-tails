@@ -15,9 +15,16 @@ router.get('/stats', authenticateToken, (req, res) => {
                 return res.status(500).json({ error: err2.message });
             }
             
-            res.json({
-                totalArticles: result.total,
-                publishedArticles: result2.published
+            db.get('SELECT COUNT(*) as drafts FROM articles WHERE published = 0', [], (err3, result3) => {
+                if (err3) {
+                    return res.status(500).json({ error: err3.message });
+                }
+                
+                res.json({
+                    totalArticles: result.total,
+                    publishedArticles: result2.published,
+                    draftArticles: result3.drafts
+                });
             });
         });
     });

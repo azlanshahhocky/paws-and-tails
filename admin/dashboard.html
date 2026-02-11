@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Paws & Tails</title>
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         * {
             margin: 0;
@@ -341,6 +342,146 @@
         .permalink-display strong {
             color: #4caf50;
         }
+
+        /* Filter Buttons */
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .filter-btn:hover {
+            border-color: #4caf50;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-badge.published {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-badge.draft {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        /* Status Toggle */
+        .status-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .status-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .status-btn.active {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .status-btn:hover {
+            border-color: #4caf50;
+        }
+
+        /* Preview Modal */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .preview-modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .preview-content {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .btn-preview {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .btn-preview:hover {
+            background: #1976d2;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -365,6 +506,10 @@
                 <h3>Published Articles</h3>
                 <div class="number" id="publishedArticles">0</div>
             </div>
+            <div class="stat-card">
+                <h3>Draft Articles</h3>
+                <div class="number" id="draftArticles">0</div>
+            </div>
         </div>
 
         <!-- Main Content -->
@@ -375,6 +520,12 @@
             </div>
 
             <div id="successMessage" class="success-message"></div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all" onclick="filterArticles('all')">All Articles</button>
+                <button class="filter-btn" data-filter="published" onclick="filterArticles('published')">Published</button>
+                <button class="filter-btn" data-filter="draft" onclick="filterArticles('draft')">Drafts</button>
+            </div>
 
             <div id="articlesContainer">
                 <div class="loading">Loading articles...</div>
@@ -435,18 +586,42 @@
                     <input type="text" id="author" name="author" value="Paws & Tails">
                 </div>
 
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="status-toggle">
+                        <button type="button" class="status-btn" data-status="0" onclick="setStatus(0)">Save as Draft</button>
+                        <button type="button" class="status-btn active" data-status="1" onclick="setStatus(1)">Publish</button>
+                    </div>
+                    <input type="hidden" id="published" name="published" value="1">
+                </div>
+
                 <div id="permalinkDisplay" class="permalink-display" style="display: none;">
                     <strong>Permalink:</strong> <span id="permalinkUrl"></span>
                 </div>
 
-                <button type="submit" class="btn-primary" id="submitBtn">Publish Article</button>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="submitBtn">Publish Article</button>
+                    <button type="button" class="btn-preview" onclick="previewArticle()">Preview</button>
+                </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <h2>Article Preview</h2>
+                <button class="close-btn" onclick="closePreview()">&times;</button>
+            </div>
+            <div id="previewArticleContent"></div>
         </div>
     </div>
 
     <script>
         let articles = [];
         let currentArticleId = null;
+        let currentFilter = 'all';
         const token = localStorage.getItem('adminToken');
 
         // Check authentication
@@ -456,6 +631,29 @@
 
         // Display username
         document.getElementById('username').textContent = localStorage.getItem('adminUsername') || 'Admin';
+
+        // Initialize TinyMCE
+        tinymce.init({
+            selector: '#content',
+            height: 500,
+            menubar: false,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | formatselect | bold italic underline | ' +
+                'alignleft aligncenter alignright alignjustify | ' +
+                'bullist numlist outdent indent | link image | code preview | help',
+            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+            automatic_uploads: true,
+            images_upload_url: '/api/upload',
+            relative_urls: false,
+            remove_script_host: false,
+            convert_urls: true,
+            branding: false,
+            promotion: false
+        });
 
         // Load initial data
         loadStats();
@@ -477,6 +675,7 @@
                 const data = await response.json();
                 document.getElementById('totalArticles').textContent = data.totalArticles;
                 document.getElementById('publishedArticles').textContent = data.publishedArticles;
+                document.getElementById('draftArticles').textContent = data.draftArticles || 0;
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
@@ -494,23 +693,53 @@
             }
         }
 
+        function filterArticles(filter) {
+            currentFilter = filter;
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.filter === filter) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            displayArticles();
+        }
+
         function displayArticles() {
             const container = document.getElementById('articlesContainer');
             
-            if (articles.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>No articles yet. Create your first article!</p></div>';
+            // Filter articles based on current filter
+            let filteredArticles = articles;
+            if (currentFilter === 'published') {
+                filteredArticles = articles.filter(a => a.published === 1);
+            } else if (currentFilter === 'draft') {
+                filteredArticles = articles.filter(a => a.published === 0);
+            }
+            
+            if (filteredArticles.length === 0) {
+                const message = currentFilter === 'draft' ? 'No draft articles' : 
+                               currentFilter === 'published' ? 'No published articles' : 
+                               'No articles yet. Create your first article!';
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><p>${message}</p></div>`;
                 return;
             }
 
-            let html = '<table class="articles-table"><thead><tr><th>Title</th><th>Author</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
+            let html = '<table class="articles-table"><thead><tr><th>Title</th><th>Author</th><th>Created</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
             
-            articles.forEach(article => {
+            filteredArticles.forEach(article => {
                 const date = new Date(article.created_at).toLocaleDateString();
+                const statusBadge = article.published ? 
+                    '<span class="status-badge published">Published</span>' : 
+                    '<span class="status-badge draft">Draft</span>';
+                
                 html += `
                     <tr>
                         <td><strong>${article.title}</strong><br><small>${article.slug}</small></td>
                         <td>${article.author}</td>
                         <td>${date}</td>
+                        <td>${statusBadge}</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn-small btn-edit" onclick="editArticle(${article.id})">Edit</button>
@@ -525,6 +754,22 @@
             container.innerHTML = html;
         }
 
+        function setStatus(status) {
+            document.getElementById('published').value = status;
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.status == status) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update submit button text
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = status === '1' ? 
+                (currentArticleId ? 'Update & Publish' : 'Publish Article') : 
+                (currentArticleId ? 'Update Draft' : 'Save as Draft');
+        }
+
         function openNewArticleModal() {
             currentArticleId = null;
             document.getElementById('modalTitle').textContent = 'New Article';
@@ -533,6 +778,21 @@
             document.getElementById('imagePreview').style.display = 'none';
             document.getElementById('permalinkDisplay').style.display = 'none';
             document.getElementById('fileName').textContent = 'No file chosen';
+            document.getElementById('published').value = '1';
+            
+            // Reset TinyMCE
+            if (tinymce.get('content')) {
+                tinymce.get('content').setContent('');
+            }
+            
+            // Reset status buttons
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.status === '1') {
+                    btn.classList.add('active');
+                }
+            });
+            
             document.getElementById('submitBtn').textContent = 'Publish Article';
             document.getElementById('articleModal').classList.add('show');
         }
@@ -546,11 +806,28 @@
             document.getElementById('articleId').value = article.id;
             document.getElementById('title').value = article.title;
             document.getElementById('excerpt').value = article.excerpt || '';
-            document.getElementById('content').value = article.content;
             document.getElementById('meta_description').value = article.meta_description || '';
             document.getElementById('meta_keywords').value = article.meta_keywords || '';
             document.getElementById('author').value = article.author;
-            document.getElementById('submitBtn').textContent = 'Update Article';
+            document.getElementById('published').value = article.published || 1;
+            
+            // Set TinyMCE content
+            if (tinymce.get('content')) {
+                tinymce.get('content').setContent(article.content);
+            } else {
+                document.getElementById('content').value = article.content;
+            }
+            
+            // Update status buttons
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.status == article.published) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = article.published ? 'Update & Publish' : 'Update Draft';
             
             if (article.image_url) {
                 document.getElementById('imagePreview').style.display = 'block';
@@ -606,6 +883,36 @@
             }
         }
 
+        function previewArticle() {
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value || 'Paws & Tails';
+            const content = tinymce.get('content') ? tinymce.get('content').getContent() : document.getElementById('content').value;
+            
+            if (!title || !content) {
+                alert('Please enter a title and content to preview');
+                return;
+            }
+            
+            const previewHTML = `
+                <article style="max-width: 800px; margin: 0 auto;">
+                    <h1 style="color: #333; margin-bottom: 10px;">${title}</h1>
+                    <div style="color: #666; font-size: 0.9em; margin-bottom: 20px;">
+                        By ${author} | ${new Date().toLocaleDateString()}
+                    </div>
+                    <div class="content" style="line-height: 1.6;">
+                        ${content}
+                    </div>
+                </article>
+            `;
+            
+            document.getElementById('previewArticleContent').innerHTML = previewHTML;
+            document.getElementById('previewModal').classList.add('show');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('show');
+        }
+
         document.getElementById('articleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -617,10 +924,15 @@
             const formData = new FormData();
             formData.append('title', document.getElementById('title').value);
             formData.append('excerpt', document.getElementById('excerpt').value);
-            formData.append('content', document.getElementById('content').value);
+            
+            // Get content from TinyMCE
+            const content = tinymce.get('content') ? tinymce.get('content').getContent() : document.getElementById('content').value;
+            formData.append('content', content);
+            
             formData.append('meta_description', document.getElementById('meta_description').value);
             formData.append('meta_keywords', document.getElementById('meta_keywords').value);
             formData.append('author', document.getElementById('author').value);
+            formData.append('published', document.getElementById('published').value);
 
             const imageFile = document.getElementById('image').files[0];
             if (imageFile) {
@@ -647,8 +959,8 @@
                 if (data.success) {
                     showSuccess(data.message);
                     
-                    // Show permalink
-                    if (data.permalink) {
+                    // Show permalink only for published articles
+                    if (data.permalink && document.getElementById('published').value === '1') {
                         document.getElementById('permalinkUrl').textContent = data.permalink;
                         document.getElementById('permalinkDisplay').style.display = 'block';
                     }
@@ -683,8 +995,12 @@
         // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('articleModal');
+            const previewModal = document.getElementById('previewModal');
             if (event.target === modal) {
                 closeModal();
+            }
+            if (event.target === previewModal) {
+                closePreview();
             }
         };
     </script>

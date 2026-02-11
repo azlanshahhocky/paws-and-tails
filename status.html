@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Status - Paws & Tails Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #4caf50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .status-card {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .status-card.error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+
+        .link-section {
+            margin: 30px 0;
+        }
+
+        .link-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .link-list {
+            list-style: none;
+        }
+
+        .link-list li {
+            margin: 10px 0;
+        }
+
+        .link-list a {
+            display: inline-block;
+            padding: 12px 20px;
+            background: #4caf50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .link-list a:hover {
+            background: #45a049;
+        }
+
+        .credentials {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .credentials strong {
+            color: #856404;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .troubleshooting {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .troubleshooting h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .troubleshooting ol {
+            padding-left: 20px;
+        }
+
+        .troubleshooting li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐾 Paws & Tails Admin Panel - Quick Access</h1>
+
+        <div class="status-card">
+            <strong>✅ Server Status:</strong> Running on Port 3000
+        </div>
+
+        <div class="link-section">
+            <h2>📍 Quick Links</h2>
+            <ul class="link-list">
+                <li><a href="/admin" target="_blank">🔐 Admin Login</a></li>
+                <li><a href="/index.html" target="_blank">🏠 Website Home</a></li>
+                <li><a href="/sitemap.xml" target="_blank">🗺️ Sitemap</a></li>
+            </ul>
+        </div>
+
+        <div class="credentials">
+            <strong>🔑 Default Login Credentials:</strong><br>
+            Username: <code>admin</code><br>
+            Password: <code>admin123</code><br>
+            <small>⚠️ Change these in the .env file before going to production!</small>
+        </div>
+
+        <div class="link-section">
+            <h2>📚 How to Use</h2>
+            <ol>
+                <li>Click the <strong>"🔐 Admin Login"</strong> button on the website header (top right)</li>
+                <li>Or click the floating <strong>"🔐 Admin"</strong> button on the right side</li>
+                <li>Or directly visit: <a href="/admin">http://localhost:3000/admin</a></li>
+                <li>Login with the credentials above</li>
+                <li>Start creating articles with images!</li>
+            </ol>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>If "localhost refused to connect":</h4>
+            <ol>
+                <li><strong>Check if server is running:</strong>
+                    <br><code>ps aux | grep "node server.js"</code>
+                </li>
+                <li><strong>Restart the server:</strong>
+                    <br><code>cd /workspaces/paws-and-tails && node server.js</code>
+                </li>
+                <li><strong>Check if port is in use:</strong>
+                    <br><code>netstat -tulnp | grep 3000</code>
+                </li>
+                <li><strong>Try accessing via IP:</strong>
+                    <br>If localhost doesn't work, try <code>http://127.0.0.1:3000/admin</code>
+                </li>
+            </ol>
+
+            <h4>If admin button doesn't appear:</h4>
+            <ol>
+                <li>Hard refresh your browser: <code>Ctrl + Shift + R</code> (or <code>Cmd + Shift + R</code> on Mac)</li>
+                <li>Clear browser cache</li>
+                <li>Check browser console for JavaScript errors (F12)</li>
+            </ol>
+
+            <h4>If login fails:</h4>
+            <ol>
+                <li>Verify credentials in <code>.env</code> file</li>
+                <li>Check browser console for errors</li>
+                <li>Ensure server is running</li>
+            </ol>
+        </div>
+
+        <div class="link-section" style="margin-top: 30px;">
+            <h2>📖 Documentation</h2>
+            <ul>
+                <li>Quick Start Guide: <code>QUICKSTART.md</code></li>
+                <li>Full Documentation: <code>README.md</code></li>
+                <li>Deployment Guide: <code>DEPLOYMENT.md</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Test server connection
+        fetch('/api/articles')
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Server is responding:', data);
+            })
+            .catch(error => {
+                console.error('❌ Server connection error:', error);
+                const statusCard = document.querySelector('.status-card');
+                statusCard.className = 'status-card error';
+                statusCard.innerHTML = '<strong>❌ Server Status:</strong> Not Responding - Please restart the server';
+            });
+    </script>
+</body>
+</html>

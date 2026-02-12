@@ -773,28 +773,32 @@
         // Display username
         document.getElementById('username').textContent = localStorage.getItem('adminUsername') || 'Admin';
 
-        // Initialize TinyMCE
-        tinymce.init({
-            selector: '#content',
-            height: 500,
-            menubar: false,
-            plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'help', 'wordcount'
-            ],
-            toolbar: 'undo redo | formatselect | bold italic underline | ' +
-                'alignleft aligncenter alignright alignjustify | ' +
-                'bullist numlist outdent indent | link image | code preview | help',
-            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-            automatic_uploads: true,
-            images_upload_url: '/api/upload',
-            relative_urls: false,
-            remove_script_host: false,
-            convert_urls: true,
-            branding: false,
-            promotion: false
-        });
+        // Initialize TinyMCE (with error handling for CDN loading)
+        if (typeof tinymce !== 'undefined') {
+            tinymce.init({
+                selector: '#content',
+                height: 500,
+                menubar: false,
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | formatselect | bold italic underline | ' +
+                    'alignleft aligncenter alignright alignjustify | ' +
+                    'bullist numlist outdent indent | link image | code preview | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                automatic_uploads: true,
+                images_upload_url: '/api/upload',
+                relative_urls: false,
+                remove_script_host: false,
+                convert_urls: true,
+                branding: false,
+                promotion: false
+            });
+        } else {
+            console.warn('TinyMCE not loaded - using plain textarea');
+        }
 
         // Load initial data
         loadStats();
@@ -921,8 +925,8 @@
             document.getElementById('fileName').textContent = 'No file chosen';
             document.getElementById('published').value = '1';
             
-            // Reset TinyMCE
-            if (tinymce.get('content')) {
+            // Reset TinyMCE (if available)
+            if (typeof tinymce !== 'undefined' && tinymce.get('content')) {
                 tinymce.get('content').setContent('');
             }
             
@@ -962,8 +966,8 @@
             document.getElementById('author').value = article.author;
             document.getElementById('published').value = article.published || 1;
             
-            // Set TinyMCE content
-            if (tinymce.get('content')) {
+            // Set TinyMCE content (if available)
+            if (typeof tinymce !== 'undefined' && tinymce.get('content')) {
                 tinymce.get('content').setContent(article.content);
             } else {
                 document.getElementById('content').value = article.content;
@@ -1007,11 +1011,15 @@
             }
             
             // Store initial content
-            lastSavedContent = tinymce.get('content') ? tinymce.get('content').getContent() : '';
+            lastSavedContent = (typeof tinymce !== 'undefined' && tinymce.get('content')) ? 
+                tinymce.get('content').getContent() : 
+                document.getElementById('content').value;
             
             // Set up auto-save interval (30 seconds)
             autoSaveInterval = setInterval(() => {
-                const currentContent = tinymce.get('content') ? tinymce.get('content').getContent() : '';
+                const currentContent = (typeof tinymce !== 'undefined' && tinymce.get('content')) ? 
+                    tinymce.get('content').getContent() : 
+                    document.getElementById('content').value;
                 const title = document.getElementById('title').value;
                 
                 // Only auto-save if content changed and it's a draft
@@ -1029,7 +1037,9 @@
             
             const formData = {
                 title: document.getElementById('title').value,
-                content: tinymce.get('content') ? tinymce.get('content').getContent() : document.getElementById('content').value,
+                content: (typeof tinymce !== 'undefined' && tinymce.get('content')) ? 
+                    tinymce.get('content').getContent() : 
+                    document.getElementById('content').value,
                 excerpt: document.getElementById('excerpt').value,
                 meta_description: document.getElementById('meta_description').value,
                 meta_keywords: document.getElementById('meta_keywords').value,
@@ -1209,7 +1219,9 @@
         function previewArticle() {
             const title = document.getElementById('title').value;
             const author = document.getElementById('author').value || 'Paws & Tails';
-            const content = tinymce.get('content') ? tinymce.get('content').getContent() : document.getElementById('content').value;
+            const content = (typeof tinymce !== 'undefined' && tinymce.get('content')) ? 
+                tinymce.get('content').getContent() : 
+                document.getElementById('content').value;
             
             if (!title || !content) {
                 alert('Please enter a title and content to preview');
@@ -1248,8 +1260,10 @@
             formData.append('title', document.getElementById('title').value);
             formData.append('excerpt', document.getElementById('excerpt').value);
             
-            // Get content from TinyMCE
-            const content = tinymce.get('content') ? tinymce.get('content').getContent() : document.getElementById('content').value;
+            // Get content from TinyMCE (if available) or textarea
+            const content = (typeof tinymce !== 'undefined' && tinymce.get('content')) ? 
+                tinymce.get('content').getContent() : 
+                document.getElementById('content').value;
             formData.append('content', content);
             
             formData.append('meta_description', document.getElementById('meta_description').value);

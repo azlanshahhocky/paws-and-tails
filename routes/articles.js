@@ -9,6 +9,18 @@ const authenticateToken = require('../middleware/auth');
 const { validateContent, sanitizeContent } = require('../utils/contentValidator');
 const { renderTemplate, templateExists, getFallbackTemplate, renderTemplateString } = require('../utils/templateEngine');
 
+/**
+ * Article Routes
+ * 
+ * Security Note: Rate limiting should be implemented in production
+ * to prevent abuse of authenticated endpoints. Recommended: express-rate-limit
+ * 
+ * Example:
+ * const rateLimit = require('express-rate-limit');
+ * const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+ * router.use(limiter);
+ */
+
 // Configure multer for image uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {

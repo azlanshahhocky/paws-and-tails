@@ -111,14 +111,18 @@ function sanitizeContent(content) {
     
     let sanitized = content;
     
-    // Remove <script> tags and their contents
-    sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    // Remove <script> tags and their contents more thoroughly
+    // This regex handles script tags with various spacing and attributes
+    sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script\s*>/gi, '');
+    // Also remove standalone script tags that might not be closed properly
+    sanitized = sanitized.replace(/<script[^>]*>[\s\S]*?$/gi, '');
     
-    // Remove event handlers (onclick, onerror, etc.)
-    sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
-    sanitized = sanitized.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
+    // Remove event handlers (onclick, onerror, etc.) more thoroughly
+    // This pattern matches: on[word]="anything" or on[word]='anything' or on[word]=value
+    sanitized = sanitized.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
+    sanitized = sanitized.replace(/\s+on\w+\s*=\s*[^\s>'"]+/gi, '');
     
-    // Remove javascript: protocol from links
+    // Remove javascript: protocol from links and sources
     sanitized = sanitized.replace(/href\s*=\s*["']?\s*javascript:/gi, 'href="#"');
     sanitized = sanitized.replace(/src\s*=\s*["']?\s*javascript:/gi, 'src="#"');
     
@@ -151,7 +155,10 @@ function escapeHtml(unsafe) {
  */
 function stripHtmlTags(html) {
     if (!html) return '';
-    return html.replace(/<[^>]*>/g, '');
+    // Remove script tags first before stripping all tags
+    let cleaned = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script\s*>/gi, '');
+    // Remove all remaining HTML tags
+    return cleaned.replace(/<[^>]+>/g, '');
 }
 
 /**

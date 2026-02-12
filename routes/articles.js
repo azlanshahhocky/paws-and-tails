@@ -6,6 +6,20 @@ const fs = require('fs');
 const slugify = require('slugify');
 const db = require('../database');
 const authenticateToken = require('../middleware/auth');
+const { validateContent, sanitizeContent } = require('../utils/contentValidator');
+const { renderTemplate, templateExists, getFallbackTemplate, renderTemplateString } = require('../utils/templateEngine');
+
+/**
+ * Article Routes
+ * 
+ * Security Note: Rate limiting should be implemented in production
+ * to prevent abuse of authenticated endpoints. Recommended: express-rate-limit
+ * 
+ * Example:
+ * const rateLimit = require('express-rate-limit');
+ * const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+ * router.use(limiter);
+ */
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -76,6 +90,18 @@ router.get('/:slug', (req, res) => {
 router.post('/', authenticateToken, upload.single('image'), (req, res) => {
     const { title, content, excerpt, meta_description, meta_keywords, author, published } = req.body;
     
+    // Validate content
+    const validation = validateContent(title, content);
+    if (!validation.valid) {
+        return res.status(400).json({ 
+            error: 'Validation failed', 
+            details: validation.errors 
+        });
+    }
+    
+    // Sanitize content to prevent XSS
+    const sanitizedContent = sanitizeContent(content);
+    
     // Generate slug from title
     const slug = slugify(title, { lower: true, strict: true });
     
@@ -85,10 +111,10 @@ router.post('/', authenticateToken, upload.single('image'), (req, res) => {
     // Parse published field (default to 1 if not provided)
     const publishedValue = published !== undefined ? parseInt(published) : 1;
 
-    const sql = `INSERT INTO articles (title, slug, content, excerpt, image_url, meta_description, meta_keywords, author, published) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO articles (title, slug, content, excerpt, image_url, meta_description, meta_keywords, author, published, version_count) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`;
     
-    db.run(sql, [title, slug, content, excerpt, imageUrl, meta_description, meta_keywords, author || 'Paws & Tails', publishedValue], function(err) {
+    db.run(sql, [title, slug, sanitizedContent, excerpt, imageUrl, meta_description, meta_keywords, author || 'Paws & Tails', publishedValue], function(err) {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -97,9 +123,45 @@ router.post('/', authenticateToken, upload.single('image'), (req, res) => {
         
         // Only generate HTML file, update sitemap, and notify Google if published
         if (publishedValue === 1) {
-            generateArticleHTML(articleId, { id: articleId, title, slug, content, excerpt, image_url: imageUrl, meta_description, meta_keywords, author: author || 'Paws & Tails' });
-            updateSitemap();
-            notifyGoogleIndexing(slug);
+            try {
+                generateArticleHTML(articleId, { 
+                    id: articleId, 
+                    title, 
+                    slug, 
+                    content: sanitizedContent, 
+                    excerpt, 
+                    image_url: imageUrl, 
+                    meta_description, 
+                    meta_keywords, 
+                    author: author || 'Paws & Tails',
+                    created_at: new Date().toLocaleDateString()
+                });
+                
+                // Create initial version
+                createArticleVersion(articleId, {
+                    title,
+                    content: sanitizedContent,
+                    excerpt,
+                    image_url: imageUrl,
+                    meta_description,
+                    meta_keywords,
+                    author: author || 'Paws & Tails'
+                });
+                
+                updateSitemap();
+                notifyGoogleIndexing(slug);
+            } catch (error) {
+                // Rollback: delete the article if HTML generation fails
+                db.run('DELETE FROM articles WHERE id = ?', [articleId], (rollbackErr) => {
+                    if (rollbackErr) {
+                        console.error('Rollback failed:', rollbackErr);
+                    }
+                });
+                return res.status(500).json({ 
+                    error: 'Failed to generate article HTML',
+                    details: error.message 
+                });
+            }
         }
         
         const message = publishedValue === 1 ? 'Article published successfully' : 'Article saved as draft';
@@ -112,7 +174,7 @@ router.post('/', authenticateToken, upload.single('image'), (req, res) => {
         
         // Only include permalink for published articles
         if (publishedValue === 1) {
-            responseData.permalink = `${process.env.WEBSITE_URL}/articles/${slug}.html`;
+            responseData.permalink = `${process.env.WEBSITE_URL || 'https://pawsanadtails.site'}/articles/${slug}.html`;
         }
         
         res.json(responseData);
@@ -124,6 +186,18 @@ router.put('/:id', authenticateToken, upload.single('image'), (req, res) => {
     const { title, content, excerpt, meta_description, meta_keywords, author, published } = req.body;
     const articleId = req.params.id;
     
+    // Validate content
+    const validation = validateContent(title, content);
+    if (!validation.valid) {
+        return res.status(400).json({ 
+            error: 'Validation failed', 
+            details: validation.errors 
+        });
+    }
+    
+    // Sanitize content
+    const sanitizedContent = sanitizeContent(content);
+    
     // Generate new slug if title changed
     const slug = slugify(title, { lower: true, strict: true });
     
@@ -133,6 +207,11 @@ router.put('/:id', authenticateToken, upload.single('image'), (req, res) => {
             return res.status(404).json({ error: 'Article not found' });
         }
         
+        // Backup current version before update if published
+        if (article.published === 1) {
+            createArticleVersion(articleId, article);
+        }
+        
         let imageUrl = article.image_url;
         
         // If new image uploaded, delete old one and use new
@@ -140,7 +219,11 @@ router.put('/:id', authenticateToken, upload.single('image'), (req, res) => {
             if (article.image_url) {
                 const oldImagePath = path.join(__dirname, '..', article.image_url);
                 if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);
+                    try {
+                        fs.unlinkSync(oldImagePath);
+                    } catch (error) {
+                        console.error('Error deleting old image:', error);
+                    }
                 }
             }
             imageUrl = `/images/${req.file.filename}`;
@@ -153,29 +236,61 @@ router.put('/:id', authenticateToken, upload.single('image'), (req, res) => {
         
         const sql = `UPDATE articles 
                      SET title = ?, slug = ?, content = ?, excerpt = ?, image_url = ?, 
-                         meta_description = ?, meta_keywords = ?, author = ?, published = ?, updated_at = CURRENT_TIMESTAMP
+                         meta_description = ?, meta_keywords = ?, author = ?, published = ?, 
+                         updated_at = CURRENT_TIMESTAMP, version_count = version_count + 1
                      WHERE id = ?`;
         
-        db.run(sql, [title, slug, content, excerpt, imageUrl, meta_description, meta_keywords, author || 'Paws & Tails', publishedValue, articleId], function(err) {
+        db.run(sql, [title, slug, sanitizedContent, excerpt, imageUrl, meta_description, meta_keywords, author || 'Paws & Tails', publishedValue, articleId], function(err) {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
             
             // Generate/delete HTML file based on published status
             if (isNowPublished) {
-                // Generate HTML file if now published
-                generateArticleHTML(articleId, { id: articleId, title, slug, content, excerpt, image_url: imageUrl, meta_description, meta_keywords, author: author || 'Paws & Tails' });
-                updateSitemap();
-                
-                // Notify Google if newly published
-                if (!wasPublished) {
-                    notifyGoogleIndexing(slug);
+                try {
+                    // Delete old HTML if slug changed
+                    if (article.slug !== slug && wasPublished) {
+                        const oldHtmlPath = path.join(__dirname, '../articles', `${article.slug}.html`);
+                        if (fs.existsSync(oldHtmlPath)) {
+                            fs.unlinkSync(oldHtmlPath);
+                        }
+                    }
+                    
+                    // Generate HTML file if now published
+                    generateArticleHTML(articleId, { 
+                        id: articleId, 
+                        title, 
+                        slug, 
+                        content: sanitizedContent, 
+                        excerpt, 
+                        image_url: imageUrl, 
+                        meta_description, 
+                        meta_keywords, 
+                        author: author || 'Paws & Tails',
+                        created_at: new Date(article.created_at).toLocaleDateString()
+                    });
+                    updateSitemap();
+                    
+                    // Notify Google if newly published
+                    if (!wasPublished) {
+                        notifyGoogleIndexing(slug);
+                    }
+                } catch (error) {
+                    console.error('Error generating HTML:', error);
+                    return res.status(500).json({ 
+                        error: 'Failed to generate article HTML',
+                        details: error.message 
+                    });
                 }
             } else if (wasPublished && !isNowPublished) {
                 // Delete HTML file if changed from published to draft
                 const htmlPath = path.join(__dirname, '../articles', `${slug}.html`);
                 if (fs.existsSync(htmlPath)) {
-                    fs.unlinkSync(htmlPath);
+                    try {
+                        fs.unlinkSync(htmlPath);
+                    } catch (error) {
+                        console.error('Error deleting HTML:', error);
+                    }
                 }
                 updateSitemap();
             }
@@ -188,11 +303,228 @@ router.put('/:id', authenticateToken, upload.single('image'), (req, res) => {
             
             // Only include permalink for published articles
             if (isNowPublished) {
-                responseData.permalink = `${process.env.WEBSITE_URL}/articles/${slug}.html`;
+                responseData.permalink = `${process.env.WEBSITE_URL || 'https://pawsanadtails.site'}/articles/${slug}.html`;
             }
             
             res.json(responseData);
         });
+    });
+});
+
+// Auto-save endpoint for drafts
+router.post('/autosave/:id', authenticateToken, async (req, res) => {
+    const { title, content, excerpt, meta_description, meta_keywords, author } = req.body;
+    const articleId = req.params.id;
+    
+    // Sanitize content
+    const sanitizedContent = sanitizeContent(content);
+    
+    const sql = `UPDATE articles 
+                 SET title = ?, content = ?, excerpt = ?, meta_description = ?, meta_keywords = ?, author = ?,
+                     last_autosave = CURRENT_TIMESTAMP, draft_updated_at = CURRENT_TIMESTAMP
+                 WHERE id = ? AND published = 0`;
+    
+    db.run(sql, [title, sanitizedContent, excerpt, meta_description, meta_keywords, author, articleId], function(err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Draft not found or article is published' });
+        }
+        
+        res.json({ 
+            success: true, 
+            message: 'Draft auto-saved',
+            timestamp: new Date().toLocaleTimeString()
+        });
+    });
+});
+
+// Draft preview endpoint
+router.get('/preview/:id', authenticateToken, (req, res) => {
+    const articleId = req.params.id;
+    
+    db.get('SELECT * FROM articles WHERE id = ?', [articleId], (err, article) => {
+        if (err || !article) {
+            return res.status(404).json({ error: 'Article not found' });
+        }
+        
+        // Generate preview HTML (don't save to file)
+        try {
+            const previewHTML = generatePreviewHTML(article);
+            res.send(previewHTML);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to generate preview', details: error.message });
+        }
+    });
+});
+
+// Version history endpoint
+router.get('/:id/versions', authenticateToken, (req, res) => {
+    const articleId = req.params.id;
+    
+    db.all('SELECT * FROM article_versions WHERE article_id = ? ORDER BY created_at DESC LIMIT 5', 
+           [articleId], (err, versions) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ versions, count: versions.length });
+    });
+});
+
+// Restore version endpoint
+router.post('/:id/restore/:versionId', authenticateToken, (req, res) => {
+    const { id: articleId, versionId } = req.params;
+    
+    // Get version
+    db.get('SELECT * FROM article_versions WHERE id = ?', [versionId], (err, version) => {
+        if (err || !version) {
+            return res.status(404).json({ error: 'Version not found' });
+        }
+        
+        // Get current article
+        db.get('SELECT * FROM articles WHERE id = ?', [articleId], (err, article) => {
+            if (err || !article) {
+                return res.status(404).json({ error: 'Article not found' });
+            }
+            
+            // Backup current version before restore
+            createArticleVersion(articleId, article);
+            
+            // Restore
+            const sql = `UPDATE articles SET title = ?, content = ?, excerpt = ?, 
+                         image_url = ?, meta_description = ?, meta_keywords = ?, author = ?,
+                         updated_at = CURRENT_TIMESTAMP, version_count = version_count + 1
+                         WHERE id = ?`;
+            
+            db.run(sql, [version.title, version.content, version.excerpt, 
+                        version.image_url, version.meta_description, 
+                        version.meta_keywords, version.author, articleId], function(err) {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                
+                // Regenerate HTML if published
+                if (article.published === 1) {
+                    try {
+                        const slug = slugify(version.title, { lower: true, strict: true });
+                        
+                        // Delete old HTML if slug changed
+                        if (article.slug !== slug) {
+                            const oldHtmlPath = path.join(__dirname, '../articles', `${article.slug}.html`);
+                            if (fs.existsSync(oldHtmlPath)) {
+                                fs.unlinkSync(oldHtmlPath);
+                            }
+                        }
+                        
+                        // Update slug in database
+                        db.run('UPDATE articles SET slug = ? WHERE id = ?', [slug, articleId]);
+                        
+                        generateArticleHTML(articleId, {
+                            id: articleId,
+                            title: version.title,
+                            slug: slug,
+                            content: version.content,
+                            excerpt: version.excerpt,
+                            image_url: version.image_url,
+                            meta_description: version.meta_description,
+                            meta_keywords: version.meta_keywords,
+                            author: version.author,
+                            created_at: new Date(article.created_at).toLocaleDateString()
+                        });
+                        updateSitemap();
+                    } catch (error) {
+                        console.error('Error regenerating HTML:', error);
+                        return res.status(500).json({ 
+                            error: 'Version restored but HTML regeneration failed',
+                            details: error.message 
+                        });
+                    }
+                }
+                
+                res.json({ success: true, message: 'Version restored successfully' });
+            });
+        });
+    });
+});
+
+// Integrity check endpoint
+router.get('/admin/integrity-check', authenticateToken, (req, res) => {
+    const issues = [];
+    
+    // Check for published articles without HTML files
+    db.all('SELECT * FROM articles WHERE published = 1', [], (err, articles) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        
+        articles.forEach(article => {
+            const htmlPath = path.join(__dirname, '../articles', `${article.slug}.html`);
+            if (!fs.existsSync(htmlPath)) {
+                issues.push({
+                    type: 'missing_html',
+                    article_id: article.id,
+                    slug: article.slug,
+                    title: article.title
+                });
+            }
+        });
+        
+        // Check for orphaned HTML files
+        const articlesDir = path.join(__dirname, '../articles');
+        if (fs.existsSync(articlesDir)) {
+            const htmlFiles = fs.readdirSync(articlesDir).filter(f => f.endsWith('.html'));
+            
+            let checkedCount = 0;
+            htmlFiles.forEach(file => {
+                const slug = file.replace('.html', '');
+                db.get('SELECT * FROM articles WHERE slug = ?', [slug], (err, article) => {
+                    if (!article && !err) {
+                        issues.push({
+                            type: 'orphaned_html',
+                            file: file,
+                            slug: slug
+                        });
+                    }
+                    
+                    checkedCount++;
+                    if (checkedCount === htmlFiles.length) {
+                        res.json({ issues, total: issues.length });
+                    }
+                });
+            });
+            
+            if (htmlFiles.length === 0) {
+                res.json({ issues, total: issues.length });
+            }
+        } else {
+            res.json({ issues, total: issues.length });
+        }
+    });
+});
+
+// Regenerate HTML for article (for fixing missing HTML)
+router.post('/:id/regenerate', authenticateToken, (req, res) => {
+    const articleId = req.params.id;
+    
+    db.get('SELECT * FROM articles WHERE id = ? AND published = 1', [articleId], (err, article) => {
+        if (err || !article) {
+            return res.status(404).json({ error: 'Published article not found' });
+        }
+        
+        try {
+            generateArticleHTML(articleId, {
+                ...article,
+                created_at: new Date(article.created_at).toLocaleDateString()
+            });
+            res.json({ success: true, message: 'HTML regenerated successfully' });
+        } catch (error) {
+            res.status(500).json({ 
+                error: 'Failed to regenerate HTML',
+                details: error.message 
+            });
+        }
     });
 });
 
@@ -236,181 +568,115 @@ router.delete('/:id', authenticateToken, (req, res) => {
 
 // Function to generate HTML file for article
 function generateArticleHTML(articleId, article) {
-    const template = `
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="${article.meta_description || article.excerpt || article.title}">
-    <meta name="keywords" content="${article.meta_keywords || 'puppies, dogs, pet care'}">
-    <meta name="author" content="${article.author}">
-    <title>${article.title} - Paws & Tails</title>
-    <style>
-        /* Light Theme Variables */
-        :root {
-            --background: #f9f9f9;
-            --text-color: #333;
-            --header-background: #4caf50;
-            --header-text-color: white;
-            --footer-background: #333;
-            --footer-text-color: white;
-            --article-background: white;
-            --heading-color: #333;
-        }
-
-        /* Dark Theme Variables */
-        [data-theme="dark"] {
-            --background: #333;
-            --text-color: #f9f9f9;
-            --header-background: #222;
-            --header-text-color: #f9f9f9;
-            --footer-background: #222;
-            --footer-text-color: #f9f9f9;
-            --article-background: #444;
-            --heading-color: #f9f9f9;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            line-height: 1.6;
-            background-color: var(--background);
-            color: var(--text-color);
-        }
-
-        header, footer {
-            background-color: var(--header-background);
-            color: var(--header-text-color);
-            padding: 10px 0;
-            text-align: center;
-        }
-
-        footer {
-            background-color: var(--footer-background);
-            color: var(--footer-text-color);
-        }
-
-        nav ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        nav ul li {
-            display: inline;
-            margin: 0 10px;
-        }
-
-        nav ul li a {
-            color: var(--header-text-color);
-            text-decoration: none;
-        }
-
-        article {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: var(--article-background);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        article h1 {
-            color: var(--heading-color);
-            margin-bottom: 10px;
-        }
-
-        article img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .article-meta {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 20px;
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: var(--header-background);
-            color: var(--header-text-color);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: #4caf50;
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+    const templatePath = path.join(__dirname, '../templates/article-template.html');
     
-    <header>
-        <h1>Paws & Tails</h1>
-        <nav>
-            <ul>
-                <li><a href="../index.html">Home</a></li>
-                <li><a href="../about.html">About</a></li>
-                <li><a href="../services.html">Services</a></li>
-                <li><a href="../buy-sell.html">Buy/Sell</a></li>
-                <li><a href="../contact.html">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <article>
-        <h1>${article.title}</h1>
-        <div class="article-meta">
-            By ${article.author} | ${new Date().toLocaleDateString()}
-        </div>
-        ${article.image_url ? `<img src="..${article.image_url}" alt="${article.title}">` : ''}
-        <div class="content">
-            ${article.content}
-        </div>
-        <a href="../index.html" class="back-link">← Back to Home</a>
-    </article>
-
-    <footer>
-        <p>&copy; 2026 Paws & Tails. All rights reserved.</p>
-    </footer>
-
-    <script>
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+    // Prepare template data
+    const templateData = {
+        title: article.title || '',
+        content: article.content || '',
+        author: article.author || 'Paws & Tails',
+        created_at: article.created_at || new Date().toLocaleDateString(),
+        meta_description: article.meta_description || article.excerpt || article.title || '',
+        meta_keywords: article.meta_keywords || 'puppies, dogs, pet care',
+        featured_image: article.image_url ? `<img src="..${article.image_url}" alt="${article.title}">` : ''
+    };
+    
+    let htmlContent;
+    
+    // Try to use template file, fall back to inline template if not found
+    if (templateExists(templatePath)) {
+        try {
+            htmlContent = renderTemplate(templatePath, templateData);
+        } catch (error) {
+            console.error('Template rendering error, using fallback:', error);
+            const fallbackTemplate = getFallbackTemplate();
+            htmlContent = renderTemplateString(fallbackTemplate, templateData);
         }
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
-</body>
-</html>`;
-
+    } else {
+        console.warn('Template file not found, using fallback template');
+        const fallbackTemplate = getFallbackTemplate();
+        htmlContent = renderTemplateString(fallbackTemplate, templateData);
+    }
+    
+    // Write HTML file
     const filePath = path.join(__dirname, '../articles', `${article.slug}.html`);
-    fs.writeFileSync(filePath, template);
+    fs.writeFileSync(filePath, htmlContent);
+}
+
+// Function to generate preview HTML (not saved to file)
+function generatePreviewHTML(article) {
+    const templatePath = path.join(__dirname, '../templates/article-template.html');
+    
+    const templateData = {
+        title: article.title || '',
+        content: article.content || '',
+        author: article.author || 'Paws & Tails',
+        created_at: article.created_at ? new Date(article.created_at).toLocaleDateString() : new Date().toLocaleDateString(),
+        meta_description: article.meta_description || article.excerpt || article.title || '',
+        meta_keywords: article.meta_keywords || 'puppies, dogs, pet care',
+        featured_image: article.image_url ? `<img src="..${article.image_url}" alt="${article.title}">` : ''
+    };
+    
+    if (templateExists(templatePath)) {
+        try {
+            return renderTemplate(templatePath, templateData);
+        } catch (error) {
+            console.error('Preview template error, using fallback:', error);
+            const fallbackTemplate = getFallbackTemplate();
+            return renderTemplateString(fallbackTemplate, templateData);
+        }
+    } else {
+        const fallbackTemplate = getFallbackTemplate();
+        return renderTemplateString(fallbackTemplate, templateData);
+    }
+}
+
+// Function to create article version (for history)
+function createArticleVersion(articleId, article) {
+    // Check version count and delete oldest if > 5
+    db.get('SELECT COUNT(*) as count FROM article_versions WHERE article_id = ?', [articleId], (err, result) => {
+        if (!err && result && result.count >= 5) {
+            // Delete oldest version
+            db.run(`DELETE FROM article_versions WHERE id IN (
+                        SELECT id FROM article_versions WHERE article_id = ? 
+                        ORDER BY created_at ASC LIMIT 1
+                    )`, [articleId]);
+        }
+    });
+    
+    // Get next version number
+    db.get('SELECT MAX(version_number) as max_version FROM article_versions WHERE article_id = ?', 
+           [articleId], (err, result) => {
+        const nextVersion = (result && result.max_version) ? result.max_version + 1 : 1;
+        
+        const sql = `INSERT INTO article_versions 
+                     (article_id, title, content, excerpt, image_url, author, meta_description, meta_keywords, version_number)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        
+        db.run(sql, [
+            articleId,
+            article.title,
+            article.content,
+            article.excerpt,
+            article.image_url,
+            article.author,
+            article.meta_description,
+            article.meta_keywords,
+            nextVersion
+        ], (err) => {
+            if (err) {
+                console.error('Error creating article version:', err);
+            } else {
+                console.log(`Version ${nextVersion} created for article ${articleId}`);
+            }
+        });
+    });
 }
 
 // Function to update sitemap.xml
 function updateSitemap() {
+    const websiteUrl = process.env.WEBSITE_URL || 'https://pawsanadtails.site';
+    
     db.all('SELECT slug, updated_at FROM articles WHERE published = 1', [], (err, articles) => {
         if (err) {
             console.error('Error fetching articles for sitemap:', err);
@@ -420,32 +686,32 @@ function updateSitemap() {
         let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 \t\t<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-\t<loc>${process.env.WEBSITE_URL}/</loc>
+\t<loc>${websiteUrl}/</loc>
 \t<lastmod>${new Date().toISOString().split('T')[0]}T09:26:05+01:00</lastmod>
 \t<priority>1.0</priority>
 </url>
 <url>
-\t<loc>${process.env.WEBSITE_URL}/index.html</loc>
+\t<loc>${websiteUrl}/index.html</loc>
 \t<lastmod>${new Date().toISOString().split('T')[0]}T09:26:05+01:00</lastmod>
 \t<priority>1.0</priority>
 </url>
 <url>
-\t<loc>${process.env.WEBSITE_URL}/about.html</loc>
+\t<loc>${websiteUrl}/about.html</loc>
 \t<lastmod>${new Date().toISOString().split('T')[0]}T09:26:05+01:00</lastmod>
 \t<priority>1.0</priority>
 </url>
 <url>
-\t<loc>${process.env.WEBSITE_URL}/services.html</loc>
+\t<loc>${websiteUrl}/services.html</loc>
 \t<lastmod>${new Date().toISOString().split('T')[0]}T09:26:05+01:00</lastmod>
 \t<priority>1.0</priority>
 </url>
 <url>
-\t<loc>${process.env.WEBSITE_URL}/buy-sell.html</loc>
+\t<loc>${websiteUrl}/buy-sell.html</loc>
 \t<lastmod>${new Date().toISOString().split('T')[0]}T09:26:05+01:00</lastmod>
 \t<priority>1.0</priority>
 </url>
 <url>
-\t<loc>${process.env.WEBSITE_URL}/contact.html</loc>
+\t<loc>${websiteUrl}/contact.html</loc>
 \t<lastmod>${new Date().toISOString().split('T')[0]}T09:26:05+01:00</lastmod>
 \t<priority>1.0</priority>
 </url>
@@ -454,7 +720,7 @@ function updateSitemap() {
         articles.forEach(article => {
             const lastmod = article.updated_at ? new Date(article.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
             sitemap += `<url>
-\t<loc>${process.env.WEBSITE_URL}/articles/${article.slug}.html</loc>
+\t<loc>${websiteUrl}/articles/${article.slug}.html</loc>
 \t<lastmod>${lastmod}T09:26:05+01:00</lastmod>
 \t<priority>0.8</priority>
 </url>
@@ -464,25 +730,31 @@ function updateSitemap() {
         sitemap += `</urlset>`;
 
         const sitemapPath = path.join(__dirname, '../sitemap.xml');
-        fs.writeFileSync(sitemapPath, sitemap);
-        console.log('Sitemap updated successfully');
+        try {
+            fs.writeFileSync(sitemapPath, sitemap);
+            console.log('Sitemap updated successfully');
+        } catch (error) {
+            console.error('Error writing sitemap:', error);
+        }
     });
 }
 
 // Function to notify Google for indexing
 function notifyGoogleIndexing(slug) {
     const axios = require('axios');
-    const url = `${process.env.WEBSITE_URL}/articles/${slug}.html`;
+    const websiteUrl = process.env.WEBSITE_URL || 'https://pawsanadtails.site';
+    const url = `${websiteUrl}/articles/${slug}.html`;
     
     // Ping Google to crawl the new URL
-    const googlePingUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(process.env.WEBSITE_URL + '/sitemap.xml')}`;
+    const googlePingUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(websiteUrl + '/sitemap.xml')}`;
     
     axios.get(googlePingUrl)
         .then(() => {
             console.log(`Google notified about new article: ${url}`);
         })
         .catch(err => {
-            console.error('Error notifying Google:', err.message);
+            // Non-critical error - log but don't fail the request
+            console.error('Error notifying Google (non-critical):', err.message);
         });
 }
 

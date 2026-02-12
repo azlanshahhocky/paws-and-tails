@@ -482,6 +482,130 @@
             gap: 10px;
             align-items: center;
         }
+
+        /* Auto-save indicator styles */
+        .auto-save-indicator {
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .auto-save-indicator.saving {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+            display: block;
+        }
+
+        .auto-save-indicator.saved {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #4caf50;
+            display: block;
+        }
+
+        .auto-save-indicator.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f44336;
+            display: block;
+        }
+
+        /* Version history modal */
+        .version-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .version-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .version-content {
+            background: white;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .version-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+        }
+
+        .version-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .version-item p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .version-item .version-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Draft badge styles */
+        .article-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+
+        .badge-draft {
+            background: #6c757d;
+            color: white;
+        }
+
+        .badge-published {
+            background: #4caf50;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -599,9 +723,13 @@
                     <strong>Permalink:</strong> <span id="permalinkUrl"></span>
                 </div>
 
+                <!-- Auto-save indicator -->
+                <div id="autoSaveIndicator" class="auto-save-indicator"></div>
+
                 <div class="form-actions">
                     <button type="submit" class="btn-primary" id="submitBtn">Publish Article</button>
                     <button type="button" class="btn-preview" onclick="previewArticle()">Preview</button>
+                    <button type="button" class="btn-secondary" onclick="viewVersionHistory()" id="versionHistoryBtn" style="display: none;">Version History</button>
                 </div>
             </form>
         </div>
@@ -618,10 +746,23 @@
         </div>
     </div>
 
+    <!-- Version History Modal -->
+    <div id="versionModal" class="version-modal">
+        <div class="version-content">
+            <div class="modal-header">
+                <h2>Version History</h2>
+                <button class="close-btn" onclick="closeVersionModal()">&times;</button>
+            </div>
+            <div id="versionList"></div>
+        </div>
+    </div>
+
     <script>
         let articles = [];
         let currentArticleId = null;
         let currentFilter = 'all';
+        let autoSaveInterval = null;
+        let lastSavedContent = '';
         const token = localStorage.getItem('adminToken');
 
         // Check authentication
@@ -795,6 +936,16 @@
             
             document.getElementById('submitBtn').textContent = 'Publish Article';
             document.getElementById('articleModal').classList.add('show');
+            
+            // Clear auto-save interval for new article
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+                autoSaveInterval = null;
+            }
+            
+            // Hide auto-save indicator and version history button
+            document.getElementById('autoSaveIndicator').style.display = 'none';
+            document.getElementById('versionHistoryBtn').style.display = 'none';
         }
 
         function editArticle(id) {
@@ -836,6 +987,166 @@
             }
 
             document.getElementById('articleModal').classList.add('show');
+            
+            // Show version history button if article is published
+            if (article.published === 1) {
+                document.getElementById('versionHistoryBtn').style.display = 'inline-block';
+            }
+            
+            // Start auto-save for drafts
+            if (article.published === 0) {
+                startAutoSave(id);
+            }
+        }
+
+        // Auto-save functionality
+        function startAutoSave(articleId) {
+            // Clear any existing interval
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+            }
+            
+            // Store initial content
+            lastSavedContent = tinymce.get('content') ? tinymce.get('content').getContent() : '';
+            
+            // Set up auto-save interval (30 seconds)
+            autoSaveInterval = setInterval(() => {
+                const currentContent = tinymce.get('content') ? tinymce.get('content').getContent() : '';
+                const title = document.getElementById('title').value;
+                
+                // Only auto-save if content changed and it's a draft
+                if (currentContent !== lastSavedContent && document.getElementById('published').value === '0') {
+                    autoSaveDraft(articleId);
+                    lastSavedContent = currentContent;
+                }
+            }, 30000); // 30 seconds
+        }
+
+        async function autoSaveDraft(articleId) {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.textContent = 'Saving draft...';
+            indicator.className = 'auto-save-indicator saving';
+            
+            const formData = {
+                title: document.getElementById('title').value,
+                content: tinymce.get('content') ? tinymce.get('content').getContent() : document.getElementById('content').value,
+                excerpt: document.getElementById('excerpt').value,
+                meta_description: document.getElementById('meta_description').value,
+                meta_keywords: document.getElementById('meta_keywords').value,
+                author: document.getElementById('author').value
+            };
+            
+            try {
+                const response = await fetch(`/api/articles/autosave/${articleId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    indicator.textContent = `Draft saved at ${data.timestamp}`;
+                    indicator.className = 'auto-save-indicator saved';
+                    
+                    // Hide after 3 seconds
+                    setTimeout(() => {
+                        indicator.style.display = 'none';
+                    }, 3000);
+                } else {
+                    indicator.textContent = 'Save failed: ' + (data.error || 'Unknown error');
+                    indicator.className = 'auto-save-indicator error';
+                }
+            } catch (error) {
+                indicator.textContent = 'Save error: ' + error.message;
+                indicator.className = 'auto-save-indicator error';
+            }
+        }
+
+        // Version history functions
+        async function viewVersionHistory() {
+            if (!currentArticleId) return;
+            
+            try {
+                const response = await fetch(`/api/articles/${currentArticleId}/versions`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.versions && data.versions.length > 0) {
+                    displayVersionHistory(data.versions);
+                } else {
+                    alert('No version history available for this article');
+                }
+            } catch (error) {
+                alert('Error loading version history: ' + error.message);
+            }
+        }
+
+        function displayVersionHistory(versions) {
+            const versionList = document.getElementById('versionList');
+            
+            let html = '<div style="margin-bottom: 15px;"><p><strong>Note:</strong> Only the last 5 versions are kept.</p></div>';
+            
+            versions.forEach((version, index) => {
+                html += `
+                    <div class="version-item">
+                        <h4>Version ${version.version_number} ${index === 0 ? '(Current)' : ''}</h4>
+                        <p><strong>Title:</strong> ${version.title}</p>
+                        <p><strong>Created:</strong> ${new Date(version.created_at).toLocaleString()}</p>
+                        <p><strong>Author:</strong> ${version.author}</p>
+                        <div class="version-actions">
+                            ${index > 0 ? `<button class="btn-secondary btn-small" onclick="restoreVersion(${version.id})">Restore This Version</button>` : ''}
+                            <button class="btn-secondary btn-small" onclick="previewVersion(${version.id})">Preview</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            versionList.innerHTML = html;
+            document.getElementById('versionModal').classList.add('show');
+        }
+
+        async function restoreVersion(versionId) {
+            if (!confirm('Are you sure you want to restore this version? Your current version will be saved in history.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/articles/${currentArticleId}/restore/${versionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess('Version restored successfully');
+                    closeVersionModal();
+                    closeModal();
+                    loadArticles();
+                } else {
+                    alert('Error restoring version: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function previewVersion(versionId) {
+            alert('Version preview feature coming soon!');
+        }
+
+        function closeVersionModal() {
+            document.getElementById('versionModal').classList.remove('show');
         }
 
         async function deleteArticle(id, title) {
@@ -867,6 +1178,18 @@
 
         function closeModal() {
             document.getElementById('articleModal').classList.remove('show');
+            
+            // Stop auto-save when modal is closed
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+                autoSaveInterval = null;
+            }
+            
+            // Hide auto-save indicator
+            document.getElementById('autoSaveIndicator').style.display = 'none';
+            
+            // Hide version history button
+            document.getElementById('versionHistoryBtn').style.display = 'none';
         }
 
         function previewImage(input) {

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{meta_description}}">
+    <meta name="keywords" content="{{meta_keywords}}">
+    <meta name="author" content="{{author}}">
+    <title>{{title}} - Paws & Tails</title>
+    <style>
+        /* Light Theme Variables */
+        :root {
+            --background: #f9f9f9;
+            --text-color: #333;
+            --header-background: #4caf50;
+            --header-text-color: white;
+            --footer-background: #333;
+            --footer-text-color: white;
+            --article-background: white;
+            --heading-color: #333;
+        }
+
+        /* Dark Theme Variables */
+        [data-theme="dark"] {
+            --background: #333;
+            --text-color: #f9f9f9;
+            --header-background: #222;
+            --header-text-color: #f9f9f9;
+            --footer-background: #222;
+            --footer-text-color: #f9f9f9;
+            --article-background: #444;
+            --heading-color: #f9f9f9;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background-color: var(--background);
+            color: var(--text-color);
+        }
+
+        header, footer {
+            background-color: var(--header-background);
+            color: var(--header-text-color);
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        footer {
+            background-color: var(--footer-background);
+            color: var(--footer-text-color);
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            color: var(--header-text-color);
+            text-decoration: none;
+        }
+
+        article {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: var(--article-background);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        article h1 {
+            color: var(--heading-color);
+            margin-bottom: 10px;
+        }
+
+        article img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .article-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--header-background);
+            color: var(--header-text-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #4caf50;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Enhanced styling for rich content */
+        .content {
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .content p {
+            margin-bottom: 1em;
+        }
+
+        .content h2, .content h3, .content h4 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: var(--heading-color);
+        }
+
+        /* Code block styling */
+        .content pre {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        [data-theme="dark"] .content pre {
+            background: #2d2d2d;
+            border-color: #555;
+        }
+
+        .content code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        [data-theme="dark"] .content code {
+            background: #2d2d2d;
+        }
+
+        .content pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        /* Table styling */
+        .content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            background: var(--article-background);
+        }
+
+        .content table th,
+        .content table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        [data-theme="dark"] .content table th,
+        [data-theme="dark"] .content table td {
+            border-color: #555;
+        }
+
+        .content table th {
+            background-color: #4caf50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .content table tr:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] .content table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Video embed styling */
+        .content iframe {
+            max-width: 100%;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        /* Blockquote styling */
+        .content blockquote {
+            border-left: 4px solid #4caf50;
+            padding-left: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #666;
+        }
+
+        [data-theme="dark"] .content blockquote {
+            color: #ccc;
+        }
+
+        /* List styling */
+        .content ul, .content ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        .content li {
+            margin-bottom: 8px;
+        }
+
+        /* Image captions */
+        .content figure {
+            margin: 20px 0;
+        }
+
+        .content figcaption {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        [data-theme="dark"] .content figcaption {
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+    
+    <header>
+        <h1>Paws & Tails</h1>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../about.html">About</a></li>
+                <li><a href="../services.html">Services</a></li>
+                <li><a href="../buy-sell.html">Buy/Sell</a></li>
+                <li><a href="../contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <article>
+        <h1>{{title}}</h1>
+        <div class="article-meta">
+            By {{author}} | {{created_at}}
+        </div>
+        {{featured_image}}
+        <div class="content">
+            {{content}}
+        </div>
+        <a href="../index.html" class="back-link">← Back to Home</a>
+    </article>
+
+    <footer>
+        <p>&copy; 2026 Paws & Tails. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</body>
+</html>
